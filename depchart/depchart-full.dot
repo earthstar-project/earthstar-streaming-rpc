@@ -1,0 +1,61 @@
+
+digraph G {
+    //splines=line;
+    //splines=polyline;
+    splines=true;
+    rankdir=LR;
+    //newrank=true;
+    compound=true;
+    graph [fontname = "helvetica"];  // dpi=72
+    node [fontname = "helvetica"];
+    edge [fontname = "helvetica"];
+    
+    // files in their folder clusters
+        "deps.ts" [label="deps.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+        "mod.ts" [label="mod.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+
+        subgraph cluster1870986062 {
+            label=<<b>src</b>>;
+            style="rounded,filled";
+            fillcolor=bisque;
+            color=bisque4;
+            penwidth=2;
+                    
+            "src/scribe.ts" [label="scribe.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+            "src/types-envelope.ts" [label="types-envelope.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+            "src/types.ts" [label="types.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+            "src/util.ts" [label="util.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+    
+            subgraph cluster9198452401 {
+                label=<<b>test</b>>;
+                style="rounded,filled";
+                fillcolor=bisque;
+                color=bisque4;
+                penwidth=2;
+                        
+                "src/test/asserts.ts" [label="asserts.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+                "src/test/util.test.ts" [label="util.test.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+            }
+        }
+
+    // packages not in their own cluster
+        "https://deno.land/x/crayon_chalk_aliases@1.1.0/index.ts" [shape=box3d, style=filled, fillcolor=cornsilk3, color=cornsilk4];
+        "https://deno.land/std@0.121.0/testing/asserts.ts" [shape=box3d, style=filled, fillcolor=cornsilk3, color=cornsilk4];
+
+    // edges between files
+    "mod.ts" -> "src/scribe.ts" [penwidth=2; color=darkslategray4];
+    "mod.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
+    "mod.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
+    "mod.ts" -> "src/util.ts" [penwidth=2; color=darkslategray4];
+    "src/scribe.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
+    "src/scribe.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
+    "src/scribe.ts" -> "src/util.ts" [penwidth=2; color=darkslategray4];
+    "src/test/util.test.ts" -> "src/test/asserts.ts" [penwidth=2; color=darkslategray4];
+    "src/test/util.test.ts" -> "src/util.ts" [penwidth=2; color=darkslategray4];
+    "src/types.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
+
+    // edges from files to packages
+    "deps.ts" -> "https://deno.land/x/crayon_chalk_aliases@1.1.0/index.ts" [penwidth=1.5; style=dashed, color=cornsilk4, weight=1];
+    "src/test/asserts.ts" -> "https://deno.land/std@0.121.0/testing/asserts.ts" [penwidth=1.5; style=dashed, color=cornsilk4, weight=1];
+
+}

@@ -4,6 +4,16 @@ Very similar to JSON-RPC, but also supports streaming.  Written to be used in Ea
 
 This is a "Deno-first" package -- it's written for Deno, and then also converted and published to npm.  It should also work from browsers -- typically you'd import it from your own separate npm project and use a bundler such as webpack to put everything together.
 
+## Code structure
+
+Just the `src`:
+
+![](depchart/depchart-simple.png)
+
+Everything:
+
+![](depchart/depchart-full.png)
+
 ## Usage
 
 To use in Deno, add the following:

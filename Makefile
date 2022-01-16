@@ -1,4 +1,4 @@
-.PHONY: clean test test-watch test-coverage show-coverage coverage npm fmt
+.PHONY: clean test test-watch test-coverage show-coverage coverage npm fmt depchart
 
 clean:
 	rm -rf npm build .nyc_output coverage *.bundle.js cov.lcov coverage_html cov_profile node_modules
@@ -23,4 +23,11 @@ npm:
 
 fmt:
 	deno fmt --options-indent-width=4 --options-line-width=100 src/ scripts/
-	
+
+depchart-simple:
+	mkdir -p depchart && npx depchart `find src | grep .ts` --exclude src/test/*.ts --rankdir LR -o depchart/depchart-simple --node_modules omit
+
+depchart-full:
+	mkdir -p depchart && npx depchart deps.ts mod.ts `find src | grep .ts` --rankdir LR -o depchart/depchart-full --node_modules integrated
+
+depchart: depchart-simple depchart-full
