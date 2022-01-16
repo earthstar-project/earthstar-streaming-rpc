@@ -1,0 +1,26 @@
+.PHONY: clean test test-watch test-coverage show-coverage coverage npm fmt
+
+clean:
+	rm -rf npm build .nyc_output coverage *.bundle.js cov.lcov coverage_html cov_profile node_modules
+
+test:
+	deno test src
+
+test-watch:
+	deno test --watch src
+
+test-coverage:
+	deno test --no-check --coverage=cov_profile src
+
+# to get "genhtml", run "sudo apt-get install lcov" (on linux) or "brew install lcov" (on mac)
+show-coverage:
+	deno coverage cov_profile --lcov > cov.lcov && genhtml -o cov_html cov.lcov
+
+coverage: test-coverage show-coverage
+
+npm:
+	deno run --allow-all scripts/build_npm.ts $(VERSION)
+
+fmt:
+	deno fmt --options-indent-width=4 --options-line-width=100 src/ scripts/
+	
