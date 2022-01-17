@@ -22,27 +22,27 @@ export type EnvelopeKind =
 
 export interface EnvelopeNotify {
     kind: "NOTIFY";
-    fromScribeID: string;
+    fromDeviceId: string;
     envelopeId: string;
     method: string;
     args: any[];
 }
 export interface EnvelopeRequest {
     kind: "REQUEST";
-    fromScribeId: string;
+    fromDeviceId: string;
     envelopeId: string;
     method: string;
     args: any[];
 }
 export interface EnvelopeResponseWithData {
     kind: "RESPONSE";
-    fromScribeId: string;
+    fromDeviceId: string;
     envelopeId: string;
     data: any;
 }
 export interface EnvelopeResponseWithError {
     kind: "RESPONSE";
-    fromScribeId: string;
+    fromDeviceId: string;
     envelopeId: string;
     error: string;
 }
