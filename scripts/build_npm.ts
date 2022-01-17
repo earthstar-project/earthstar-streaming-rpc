@@ -3,7 +3,7 @@ import { build } from "https://deno.land/x/dnt@0.16.0/mod.ts";
 await Deno.remove("npm", { recursive: true }).catch((_) => {});
 
 await build({
-    entryPoints: ["./mod.ts"],
+    entryPoints: ["./mod.ts", "./example.ts"],
     outDir: "./npm",
     shims: {
         deno: {

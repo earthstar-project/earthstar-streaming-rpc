@@ -6,6 +6,9 @@ clean:
 example:
 	deno run example.ts
 
+example-npm:
+	node npm/esm/example.js
+
 test:
 	deno test src
 

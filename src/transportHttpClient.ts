@@ -18,10 +18,10 @@ export class TransportHttpClient implements ITransport {
             transport: this,
             deviceId: this.deviceId,
             description: url,
-            onIncomingEnvelope: async () => {
+            onIncomingEnvelope: async (env: Envelope) => {
                 // TODO
             },
-            onOutgoingEnvelope: async () => {
+            onOutgoingEnvelope: async (env: Envelope) => {
                 // TODO
             },
         });
