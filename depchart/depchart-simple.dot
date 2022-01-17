@@ -12,14 +12,13 @@ digraph G {
     
     // files in their folder clusters
 
-    subgraph cluster2285140244 {
+    subgraph cluster8513787771 {
         label=<<b>src</b>>;
         style="rounded";
         color=bisque4;
         penwidth=2;
                     
         "src/connection.ts" [label="connection.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
-        "src/example.ts" [label="example.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
         "src/transportHttpClient.ts" [label="transportHttpClient.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
         "src/types-envelope.ts" [label="types-envelope.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
         "src/types.ts" [label="types.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];

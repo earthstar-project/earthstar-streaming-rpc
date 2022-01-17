@@ -1,4 +1,4 @@
-import { makeId, TransportHttpClient } from "../mod.ts";
+import { makeId, TransportHttpClient } from "./mod.ts";
 
 let log = console.log;
 

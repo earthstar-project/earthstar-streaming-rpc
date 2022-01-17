@@ -12,9 +12,10 @@ digraph G {
     
     // files in their folder clusters
         "deps.ts" [label="deps.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+        "example.ts" [label="example.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
         "mod.ts" [label="mod.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
 
-        subgraph cluster476466255 {
+        subgraph cluster9990352566 {
             label=<<b>src</b>>;
             style="rounded,filled";
             fillcolor=bisque;
@@ -22,13 +23,12 @@ digraph G {
             penwidth=2;
                     
             "src/connection.ts" [label="connection.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
-            "src/example.ts" [label="example.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/transportHttpClient.ts" [label="transportHttpClient.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/types-envelope.ts" [label="types-envelope.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/types.ts" [label="types.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/util.ts" [label="util.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
     
-            subgraph cluster4646860805 {
+            subgraph cluster1270671271 {
                 label=<<b>test</b>>;
                 style="rounded,filled";
                 fillcolor=bisque;
@@ -45,6 +45,7 @@ digraph G {
         "https://deno.land/std@0.121.0/testing/asserts.ts" [shape=box3d, style=filled, fillcolor=cornsilk3, color=cornsilk4];
 
     // edges between files
+    "example.ts" -> "mod.ts" [penwidth=2; color=darkslategray4];
     "mod.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
     "mod.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
     "mod.ts" -> "src/util.ts" [penwidth=2; color=darkslategray4];
