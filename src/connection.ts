@@ -15,12 +15,14 @@ export class Connection implements IConnection {
     transport: ITransport;
     deviceId: string;
     otherDeviceId: string | null = null;
+    description: string;
     _onIncomingEnvelopeCb: OnIncomingEnvelopeCb;
     _onOutgoingEnvelopeCb: OnOutgoingEnvelopeCb;
 
     constructor(opts: ConnectionOpts) {
         this.transport = opts.transport;
         this.deviceId = opts.deviceId;
+        this.description = opts.description;
         this._onIncomingEnvelopeCb = opts.onIncomingEnvelope;
         this._onOutgoingEnvelopeCb = opts.onOutgoingEnvelope;
     }

@@ -17,6 +17,7 @@ export class TransportHttpClient implements ITransport {
         let conn = new Connection({
             transport: this,
             deviceId: this.deviceId,
+            description: url,
             onIncomingEnvelope: async () => {
                 // TODO
             },

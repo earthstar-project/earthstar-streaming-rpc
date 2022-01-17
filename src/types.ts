@@ -35,6 +35,7 @@ export type OnOutgoingEnvelopeCb = (env: Envelope) => Promise<void>;
 export interface ConnectionOpts {
     transport: ITransport;
     deviceId: string;
+    description: string;
     onIncomingEnvelope: OnIncomingEnvelopeCb;
     onOutgoingEnvelope: OnOutgoingEnvelopeCb;
 }
@@ -50,6 +51,7 @@ export interface IConnection {
     transport: ITransport;
     deviceId: string;
     otherDeviceId: string | null; // null until we discover it
+    description: string;
 
     // constructor(transport: ITransport);
 

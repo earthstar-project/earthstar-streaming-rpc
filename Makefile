@@ -3,6 +3,9 @@
 clean:
 	rm -rf npm build .nyc_output coverage *.bundle.js cov.lcov coverage_html cov_profile node_modules
 
+example:
+	deno run src/example.ts
+
 test:
 	deno test src
 

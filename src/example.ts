@@ -1,38 +1,41 @@
-/*
+import { makeId, TransportHttpClient } from "../mod.ts";
 
-
-
+let log = console.log;
 
 let deviceId = makeId();
 let methods = {
-    add: (x, y) => x + y,
+    hello: (name: string) => {},
+    add: (x: number, y: number) => x + y,
 };
+let pubUrls = ["https://example.com"];
+log("deviceId:", deviceId);
+log("pubUrls", pubUrls);
 
+//----------------------------------------
+
+log("setting up transport and adding connections");
 let transport = new TransportHttpClient({
     deviceId,
-    methods
+    methods,
 });
 for (let url of pubUrls) {
-    conn = transport.connectTo(url);
+    log("    ", url);
+    let conn = transport.addConnection(url);
 }
 
+//----------------------------------------
+
+log("calling methods on connections");
 for (let conn of transport.connections) {
-    let three = await conn.request('add', 1, 2);
+    log("--- conn:");
+    log(conn);
+    log("--- calling...");
+    await conn.notify("hello", "world");
+    let three = await conn.request("add", 1, 2);
+    log("--- result:", three);
 }
 
+//----------------------------------------
 
-conn.close()
-
-transport.close()
-
-
-
-
-
-
-
-
-
-
-
-*/
+log("closing");
+transport.close();
