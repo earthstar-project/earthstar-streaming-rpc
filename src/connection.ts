@@ -1,11 +1,4 @@
-import {
-    ConnectionOpts,
-    IConnection,
-    ITransport,
-    OnIncomingEnvelopeCb,
-    OnOutgoingEnvelopeCb,
-    Thunk,
-} from "./types.ts";
+import { ConnectionOpts, IConnection, ITransport, Thunk } from "./types.ts";
 import { Envelope, EnvelopeNotify, EnvelopeRequest } from "./types-envelope.ts";
 import { makeId } from "./util.ts";
 
@@ -16,15 +9,19 @@ export class Connection implements IConnection {
     deviceId: string;
     otherDeviceId: string | null = null;
     description: string;
-    _onIncomingEnvelopeCb: OnIncomingEnvelopeCb;
-    _onOutgoingEnvelopeCb: OnOutgoingEnvelopeCb;
+    _sendEnvelope: (env: Envelope) => Promise<void>;
 
     constructor(opts: ConnectionOpts) {
         this.transport = opts.transport;
         this.deviceId = opts.deviceId;
         this.description = opts.description;
-        this._onIncomingEnvelopeCb = opts.onIncomingEnvelope;
-        this._onOutgoingEnvelopeCb = opts.onOutgoingEnvelope;
+        this._sendEnvelope = opts.sendEnvelope;
+    }
+
+    async handleIncomingEnvelope(env: Envelope): Promise<void> {
+        // TODO: handle incoming NOTIFY: call the method
+        // TODO: handle incoming REQUEST: call the method and send out a RESPONSE envelope
+        // TODO: handle incoming RESPONSE: resolve a Deferred
     }
 
     async notify(method: string, ...args: any[]): Promise<void> {
@@ -36,7 +33,7 @@ export class Connection implements IConnection {
             method,
             args,
         };
-        await this.send(env);
+        await this._sendEnvelope(env);
     }
     async request(method: string, ...args: any[]): Promise<any> {
         if (this.isClosed) throw new Error("connection is closed");
@@ -47,12 +44,7 @@ export class Connection implements IConnection {
             method,
             args,
         };
-        // TODO: make a Deferred and listen for responses
-    }
-
-    async send(env: Envelope): Promise<void> {
-        if (this.isClosed) throw new Error("connection is closed");
-        await this._onOutgoingEnvelopeCb(env);
+        // TODO: make a Deferred and add it to a list to be handled in handleIncomingEnvelope
     }
 
     onClose(cb: Thunk): Thunk {

@@ -10,21 +10,22 @@ export class TransportHttpClient implements ITransport {
 
     constructor(opts: ITransportOpts) {
         this.deviceId = opts.deviceId;
-        // TODO: methods??
+        // TODO: methods should be saved here and passed into the Connections
     }
 
     async addConnection(url: string): Promise<Connection> {
+        // TODO: set up http connection
         let conn = new Connection({
             transport: this,
             deviceId: this.deviceId,
             description: url,
-            onIncomingEnvelope: async (env: Envelope) => {
-                // TODO
+            sendEnvelope: async (env: Envelope) => {
+                // TODO: send over HTTP
+                // TODO: check if closed (how to get a pointer to the Connection?)
             },
-            onOutgoingEnvelope: async (env: Envelope) => {
-                // TODO
-            },
+            // TODO: methods
         });
+        // TODO: when envs arrive by HTTP, push them to conn.handleIncomingEnvelope
         this.connections.push(conn);
         return conn;
     }

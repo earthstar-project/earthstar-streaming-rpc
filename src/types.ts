@@ -29,15 +29,11 @@ export interface ITransport {
     close(): void;
 }
 
-export type OnIncomingEnvelopeCb = (env: Envelope) => Promise<void>;
-export type OnOutgoingEnvelopeCb = (env: Envelope) => Promise<void>;
-
 export interface ConnectionOpts {
     transport: ITransport;
     deviceId: string;
     description: string;
-    onIncomingEnvelope: OnIncomingEnvelopeCb;
-    onOutgoingEnvelope: OnOutgoingEnvelopeCb;
+    sendEnvelope: (env: Envelope) => Promise<void>;
 }
 
 /**
@@ -52,8 +48,11 @@ export interface IConnection {
     deviceId: string;
     otherDeviceId: string | null; // null until we discover it
     description: string;
+    _sendEnvelope: (env: Envelope) => Promise<void>; // the transport provides this function for us
 
     // constructor(transport: ITransport);
+
+    handleIncomingEnvelope(env: Envelope): Promise<void>;
 
     notify(method: string, ...args: any[]): Promise<void>;
     request(method: string, ...args: any[]): Promise<any>;
