@@ -12,22 +12,27 @@ digraph G {
     
     // files in their folder clusters
 
-    subgraph cluster2126540648 {
+    subgraph cluster2285140244 {
         label=<<b>src</b>>;
         style="rounded";
         color=bisque4;
         penwidth=2;
                     
-        "src/scribe.ts" [label="scribe.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+        "src/connection.ts" [label="connection.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+        "src/example.ts" [label="example.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+        "src/transportHttpClient.ts" [label="transportHttpClient.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
         "src/types-envelope.ts" [label="types-envelope.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
         "src/types.ts" [label="types.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
         "src/util.ts" [label="util.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
     }
 
     // edges between files
-    "src/scribe.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
-    "src/scribe.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
-    "src/scribe.ts" -> "src/util.ts" [penwidth=2; color=darkslategray4];
+    "src/connection.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
+    "src/connection.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
+    "src/connection.ts" -> "src/util.ts" [penwidth=2; color=darkslategray4];
+    "src/transportHttpClient.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
+    "src/transportHttpClient.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
+    "src/transportHttpClient.ts" -> "src/connection.ts" [penwidth=2; color=darkslategray4];
     "src/types.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
 
 }
