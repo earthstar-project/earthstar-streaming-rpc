@@ -12,13 +12,14 @@ digraph G {
     
     // files in their folder clusters
 
-    subgraph cluster8513787771 {
+    subgraph cluster4560059362 {
         label=<<b>src</b>>;
         style="rounded";
         color=bisque4;
         penwidth=2;
                     
         "src/connection.ts" [label="connection.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+        "src/log.ts" [label="log.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
         "src/transportHttpClient.ts" [label="transportHttpClient.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
         "src/types-envelope.ts" [label="types-envelope.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
         "src/types.ts" [label="types.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
@@ -29,9 +30,12 @@ digraph G {
     "src/connection.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
     "src/connection.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
     "src/connection.ts" -> "src/util.ts" [penwidth=2; color=darkslategray4];
+    "src/connection.ts" -> "src/log.ts" [penwidth=2; color=darkslategray4];
+    "src/log.ts" -> "deps.ts" [penwidth=2; color=darkslategray4];
     "src/transportHttpClient.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
     "src/transportHttpClient.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
     "src/transportHttpClient.ts" -> "src/connection.ts" [penwidth=2; color=darkslategray4];
+    "src/transportHttpClient.ts" -> "src/log.ts" [penwidth=2; color=darkslategray4];
     "src/types.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
 
 }
