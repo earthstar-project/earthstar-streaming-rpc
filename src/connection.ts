@@ -28,6 +28,7 @@ export class Connection implements IConnection {
     }
 
     async handleIncomingEnvelope(env: Envelope): Promise<void> {
+        if (this.isClosed) throw new Error("connection is closed");
         if (env.kind === "NOTIFY") {
             if (!this.methods.hasOwnProperty(env.method)) {
                 //error - unknown method -- do nothing
@@ -48,6 +49,7 @@ export class Connection implements IConnection {
                     envelopeId: env.envelopeId,
                     data,
                 };
+                if (this.isClosed) throw new Error("connection is closed");
                 await this._sendEnvelope(responseEnvData);
             } catch (error) {
                 let responseEnvError: EnvelopeResponseWithError = {
@@ -56,6 +58,7 @@ export class Connection implements IConnection {
                     envelopeId: env.envelopeId,
                     error: `${error}`,
                 };
+                if (this.isClosed) throw new Error("connection is closed");
                 await this._sendEnvelope(responseEnvError);
             }
         } else if (env.kind === "RESPONSE") {

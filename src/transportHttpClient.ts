@@ -22,8 +22,23 @@ export class TransportHttpClient implements ITransport {
             description: url,
             methods: this.methods,
             sendEnvelope: async (env: Envelope) => {
-                // TODO: send over HTTP
-                // TODO: check if closed (how to get a pointer to the Connection?)
+                // send envelope in its own HTTP POST.
+                // The caller (from Connection) is responsible for checking if the conn is closed.
+                let res = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Accept": "application/json",
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(env),
+                });
+                if (!res.ok) {
+                    // TODO: error state for connections
+                    console.warn(`POST to ${url} resulted in http ${res.status}`);
+                } else {
+                    let resJson = await res.json();
+                    console.log("successful POST of an envelope.  got back:", resJson);
+                }
             },
         });
         // TODO: when envs arrive by HTTP, push them to conn.handleIncomingEnvelope
