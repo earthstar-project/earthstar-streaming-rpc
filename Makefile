@@ -4,7 +4,7 @@ clean:
 	rm -rf npm build .nyc_output coverage *.bundle.js cov.lcov coverage_html cov_profile node_modules
 
 example:
-	deno run example.ts
+	deno run -A example.ts
 
 example-npm:
 	node npm/esm/example.js
@@ -31,7 +31,7 @@ npm:
 	deno run --allow-all scripts/build_npm.ts $(VERSION)
 
 fmt:
-	deno fmt --options-indent-width=4 --options-line-width=100 src/ scripts/ example*.ts
+	deno fmt --options-single-quote --options-indent-width=4 --options-line-width=100 src/ scripts/ example*.ts
 
 depchart-simple:
 	mkdir -p depchart && npx depchart `find src | grep .ts` --exclude src/test/*.ts --rankdir LR -o depchart/depchart-simple --node_modules omit

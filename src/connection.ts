@@ -1,4 +1,4 @@
-import { ConnectionOpts, Fn, IConnection, ITransport, Thunk } from "./types.ts";
+import { ConnectionOpts, Fn, IConnection, ITransport, ConnectionStatus, Thunk } from "./types.ts";
 import {
     Envelope,
     EnvelopeNotify,
@@ -9,32 +9,51 @@ import {
 import { Deferred, makeDeferred, makeId } from "./util.ts";
 
 export class Connection implements IConnection {
-    isClosed = false;
+    status: ConnectionStatus = "CONNECTING";
     _closeCbs: Set<Thunk> = new Set();
-    transport: ITransport;
-    deviceId: string;
-    otherDeviceId: string | null = null;
-    methods: { [methodName: string]: Fn };
+
     description: string;
-    _sendEnvelope: (env: Envelope) => Promise<void>;
+    _transport: ITransport;
+    _deviceId: string;
+    _otherDeviceId: string | null = null;
+    _methods: { [methodName: string]: Fn };
+    _sendEnvelope: (conn: IConnection, env: Envelope) => Promise<void>;
     _deferredRequests: Map<string, Deferred<any>> = new Map(); // keyed by env id
 
     constructor(opts: ConnectionOpts) {
-        this.transport = opts.transport;
-        this.deviceId = opts.deviceId;
+        this._transport = opts.transport;
+        this._deviceId = opts.deviceId;
         this.description = opts.description;
-        this.methods = opts.methods;
+        this._methods = opts.methods;
         this._sendEnvelope = opts.sendEnvelope;
     }
 
+    get isClosed() {
+        return this.status === "CLOSED";
+    }
+    onClose(cb: Thunk): Thunk {
+        if (this.isClosed) throw new Error("the connection is closed");
+        this._closeCbs.add(cb);
+        return () => this._closeCbs.delete(cb);
+    }
+    close(): void {
+        if (this.isClosed) return;
+        this.status = "CLOSED";
+        for (const cb of this._closeCbs) cb();
+        this._closeCbs = new Set();
+        this._transport.connections = this._transport.connections.filter(
+            (c) => c !== this,
+        );
+    }
+
     async handleIncomingEnvelope(env: Envelope): Promise<void> {
-        if (this.isClosed) throw new Error("connection is closed");
+        if (this.isClosed) throw new Error("the connection is closed");
         if (env.kind === "NOTIFY") {
             if (!Object.prototype.hasOwnProperty.call(env, env.method)) {
                 //error - unknown method -- do nothing because this is a notify
                 console.warn(`unknown method in NOTIFY: ${env.method}`);
             } else {
-                await this.methods[env.method](...env.args);
+                await this._methods[env.method](...env.args);
             }
         } else if (env.kind === "REQUEST") {
             try {
@@ -42,24 +61,22 @@ export class Connection implements IConnection {
                     console.warn(`unknown method in REQUEST: ${env.method}`);
                     throw new Error(`unknown method in REQUEST: ${env.method}`);
                 }
-                const data = await this.methods[env.method](...env.args);
+                const data = await this._methods[env.method](...env.args);
                 const responseEnvData: EnvelopeResponseWithData = {
                     kind: "RESPONSE",
-                    fromDeviceId: this.deviceId,
+                    fromDeviceId: this._deviceId,
                     envelopeId: env.envelopeId,
                     data,
                 };
-                if (this.isClosed) throw new Error("connection is closed");
-                await this._sendEnvelope(responseEnvData);
+                await this._sendEnvelope(this, responseEnvData);
             } catch (error) {
                 const responseEnvError: EnvelopeResponseWithError = {
                     kind: "RESPONSE",
-                    fromDeviceId: this.deviceId,
+                    fromDeviceId: this._deviceId,
                     envelopeId: env.envelopeId,
                     error: `${error}`,
                 };
-                if (this.isClosed) throw new Error("connection is closed");
-                await this._sendEnvelope(responseEnvError);
+                await this._sendEnvelope(this, responseEnvError);
             }
         } else if (env.kind === "RESPONSE") {
             // We got a response back, so look up and resolve the deferred we made when we sent the REQUEST
@@ -80,21 +97,21 @@ export class Connection implements IConnection {
     }
 
     async notify(method: string, ...args: any[]): Promise<void> {
-        if (this.isClosed) throw new Error("connection is closed");
+        if (this.isClosed) throw new Error("the connection is closed");
         const env: EnvelopeNotify = {
             kind: "NOTIFY",
-            fromDeviceId: this.deviceId,
+            fromDeviceId: this._deviceId,
             envelopeId: makeId(),
             method,
             args,
         };
-        await this._sendEnvelope(env);
+        await this._sendEnvelope(this, env);
     }
     async request(method: string, ...args: any[]): Promise<any> {
-        if (this.isClosed) throw new Error("connection is closed");
+        if (this.isClosed) throw new Error("the connection is closed");
         const env: EnvelopeRequest = {
             kind: "REQUEST",
-            fromDeviceId: this.deviceId,
+            fromDeviceId: this._deviceId,
             envelopeId: makeId(),
             method,
             args,
@@ -102,23 +119,7 @@ export class Connection implements IConnection {
         // save a deferred for when the response comes back
         const deferred = makeDeferred<any>();
         this._deferredRequests.set(env.envelopeId, deferred);
-        await this._sendEnvelope(env);
+        await this._sendEnvelope(this, env);
         return deferred.promise;
-    }
-
-    onClose(cb: Thunk): Thunk {
-        if (this.isClosed) throw new Error("connection is closed");
-        this._closeCbs.add(cb);
-        return () => this._closeCbs.delete(cb);
-    }
-
-    close(): void {
-        if (this.isClosed) return;
-        this.isClosed = true;
-        for (const cb of this._closeCbs) cb();
-        this._closeCbs = new Set();
-        this.transport.connections = this.transport.connections.filter(
-            (c) => c !== this,
-        );
     }
 }

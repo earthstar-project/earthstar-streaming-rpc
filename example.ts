@@ -1,23 +1,26 @@
 import { makeId, TransportHttpClient } from "./mod.ts";
 
-const log = console.log;
+const log = (...args: any[]) => console.log('[main]', ...args);
 
+log('setting up basic variables');
 const deviceId = makeId();
 const methods = {
     hello: (name: string) => `hello ${name}!`,
     add: (x: number, y: number) => x + y,
 };
-const pubUrls = ["https://example.com"];
-log("deviceId:", deviceId);
-log("pubUrls", pubUrls);
+const pubUrls = ["https://localhost:8077"];
+log("    deviceId:", deviceId);
+log("    methods:", methods);
+log("    pubUrls:", pubUrls);
 
 //----------------------------------------
 
-log("setting up transport and adding connections");
+log("instantiating transport");
 const transport = new TransportHttpClient({
     deviceId,
     methods,
 });
+log("adding a connection for each pub url");
 for (const url of pubUrls) {
     log("    ", url);
     const conn = transport.addConnection(url);

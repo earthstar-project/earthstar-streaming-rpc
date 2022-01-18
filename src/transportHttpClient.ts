@@ -14,38 +14,6 @@ export class TransportHttpClient implements ITransport {
         this.methods = opts.methods;
     }
 
-    addConnection(url: string): Connection {
-        // TODO: set up http connection
-        const conn = new Connection({
-            transport: this,
-            deviceId: this.deviceId,
-            description: url,
-            methods: this.methods,
-            sendEnvelope: async (env: Envelope) => {
-                // send envelope in its own HTTP POST.
-                // The caller (from Connection) is responsible for checking if the conn is closed.
-                const res = await fetch(url, {
-                    method: "POST",
-                    headers: {
-                        "Accept": "application/json",
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(env),
-                });
-                if (!res.ok) {
-                    // TODO: error state for connections
-                    console.warn(`POST to ${url} resulted in http ${res.status}`);
-                } else {
-                    const resJson = await res.json();
-                    console.log("successful POST of an envelope.  got back:", resJson);
-                }
-            },
-        });
-        // TODO: when envs arrive by HTTP, push them to conn.handleIncomingEnvelope
-        this.connections.push(conn);
-        return conn;
-    }
-
     onClose(cb: Thunk): Thunk {
         this._closeCbs.add(cb);
         return () => this._closeCbs.delete(cb);
@@ -59,5 +27,47 @@ export class TransportHttpClient implements ITransport {
         for (const conn of this.connections.values()) {
             conn.close();
         }
+    }
+
+    addConnection(url: string): Connection {
+        // TODO: set up http connection
+        const conn = new Connection({
+            description: url,
+            transport: this,
+            deviceId: this.deviceId,
+            methods: this.methods,
+            sendEnvelope: async (conn: IConnection, env: Envelope) => {
+                // send envelope in its own HTTP POST.
+                // TODO: does this work right if it's called multiple times at once?
+                // probably conn.status ends up wrong.
+                if (conn.isClosed) throw new Error("the connection is closed");
+                try {
+                    conn.status = "CONNECTING";
+                    const res = await fetch(url, {
+                        method: "POST",
+                        headers: {
+                            "Accept": "application/json",
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(env),
+                    });
+                    if (!res.ok) {
+                        // TODO: error state for connections
+                        throw new Error(`a POST to ${url} resulted in http ${res.status}`);
+                    } else {
+                        const resJson = await res.json();
+                        if (conn.isClosed) throw new Error("the connection is closed");
+                        conn.status = "OPEN";
+                        console.log("successful POST of an envelope.  got back:", resJson);
+                    }
+                } catch (error) {
+                    conn.status = "ERROR";
+                    console.warn("sendEnvelope error:", error);
+                }
+            },
+        });
+        // TODO: when envs arrive by HTTP, send them to conn.handleIncomingEnvelope
+        this.connections.push(conn);
+        return conn;
     }
 }
