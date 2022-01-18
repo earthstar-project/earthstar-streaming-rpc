@@ -13,7 +13,7 @@ log('    deviceId:', deviceId);
 log('    methods:', methods);
 log('    pubUrls:', pubUrls);
 
-//----------------------------------------
+log('----------------------------------------');
 
 log('instantiating transport');
 const transport = new TransportHttpClient({
@@ -22,23 +22,24 @@ const transport = new TransportHttpClient({
 });
 log('adding a connection for each pub url');
 for (const url of pubUrls) {
-    log('    ', url);
+    log('    *', url);
     const conn = transport.addConnection(url);
 }
 
-//----------------------------------------
+log('----------------------------------------');
 
 log('calling methods on connections');
 for (const conn of transport.connections) {
     log('--- conn:');
     log(conn);
-    log('--- calling...');
+    log('--- notify hello world...');
     await conn.notify('hello', 'world');
+    log('--- request add(1,2)...');
     const three = await conn.request('add', 1, 2);
-    log('--- result:', three);
+    log('--- result of add:', three);
 }
 
-//----------------------------------------
+log('----------------------------------------');
 
-log('closing');
+log('closing transport');
 transport.close();
