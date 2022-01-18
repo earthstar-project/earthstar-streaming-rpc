@@ -20,6 +20,7 @@ export interface ITransportOpts {
 export interface ITransport {
     isClosed: boolean;
     _closeCbs: Set<Thunk>;
+    methods: { [methodName: string]: Fn };
     deviceId: string;
     connections: IConnection[];
 
@@ -32,7 +33,9 @@ export interface ITransport {
 export interface ConnectionOpts {
     transport: ITransport;
     deviceId: string;
+    methods: { [methodName: string]: Fn };
     description: string;
+
     sendEnvelope: (env: Envelope) => Promise<void>;
 }
 
@@ -47,7 +50,9 @@ export interface IConnection {
     transport: ITransport;
     deviceId: string;
     otherDeviceId: string | null; // null until we discover it
+    methods: { [methodName: string]: Fn };
     description: string;
+
     _sendEnvelope: (env: Envelope) => Promise<void>; // the transport provides this function for us
 
     // constructor(transport: ITransport);

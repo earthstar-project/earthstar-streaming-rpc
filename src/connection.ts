@@ -1,4 +1,4 @@
-import { ConnectionOpts, IConnection, ITransport, Thunk } from "./types.ts";
+import { ConnectionOpts, Fn, IConnection, ITransport, Thunk } from "./types.ts";
 import { Envelope, EnvelopeNotify, EnvelopeRequest } from "./types-envelope.ts";
 import { makeId } from "./util.ts";
 
@@ -8,6 +8,7 @@ export class Connection implements IConnection {
     transport: ITransport;
     deviceId: string;
     otherDeviceId: string | null = null;
+    methods: { [methodName: string]: Fn };
     description: string;
     _sendEnvelope: (env: Envelope) => Promise<void>;
 
@@ -15,6 +16,7 @@ export class Connection implements IConnection {
         this.transport = opts.transport;
         this.deviceId = opts.deviceId;
         this.description = opts.description;
+        this.methods = opts.methods;
         this._sendEnvelope = opts.sendEnvelope;
     }
 
