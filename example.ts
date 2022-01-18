@@ -1,6 +1,5 @@
 import { makeId, TransportHttpClient } from './mod.ts';
-
-const log = (...args: any[]) => console.log('[main]', ...args);
+import { logMain as log } from './src/log.ts';
 
 log('setting up basic variables');
 const deviceId = makeId();

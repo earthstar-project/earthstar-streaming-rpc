@@ -8,7 +8,7 @@ import {
 } from './types-envelope.ts';
 import { Deferred, makeDeferred, makeId } from './util.ts';
 
-const logConn = (...args: any[]) => console.log('        [conn]', ...args);
+import { logConnection as log } from './log.ts';
 
 export class Connection implements IConnection {
     status: ConnectionStatus = 'CONNECTING';
@@ -28,7 +28,7 @@ export class Connection implements IConnection {
         this.description = opts.description;
         this._methods = opts.methods;
         this._sendEnvelope = opts.sendEnvelope;
-        logConn('constructor for', this.description);
+        log('constructor for', this.description);
     }
 
     get isClosed() {
@@ -41,7 +41,7 @@ export class Connection implements IConnection {
     }
     close(): void {
         if (this.isClosed) return;
-        logConn('closing...');
+        log('closing...');
         this.status = 'CLOSED';
         for (const cb of this._closeCbs) cb();
         this._closeCbs = new Set();
@@ -49,12 +49,12 @@ export class Connection implements IConnection {
         this._transport.connections = this._transport.connections.filter(
             (c) => c !== this,
         );
-        logConn('...closed');
+        log('...closed');
     }
 
     async handleIncomingEnvelope(env: Envelope): Promise<void> {
         if (this.isClosed) throw new Error('the connection is closed');
-        logConn('incoming envelope:', env);
+        log('incoming envelope:', env);
         if (env.kind === 'NOTIFY') {
             if (!Object.prototype.hasOwnProperty.call(env, env.method)) {
                 //error - unknown method -- do nothing because this is a notify
@@ -112,7 +112,7 @@ export class Connection implements IConnection {
             method,
             args,
         };
-        logConn('outgoing NOTIFY', env);
+        log('outgoing NOTIFY', env);
         await this._sendEnvelope(this, env);
     }
     async request(method: string, ...args: any[]): Promise<any> {
@@ -127,7 +127,7 @@ export class Connection implements IConnection {
         // save a deferred for when the response comes back
         const deferred = makeDeferred<any>();
         this._deferredRequests.set(env.envelopeId, deferred);
-        logConn('outgoing REQUEST', env);
+        log('outgoing REQUEST', env);
         await this._sendEnvelope(this, env);
         return deferred.promise;
     }
