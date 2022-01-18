@@ -1,6 +1,12 @@
 import { ConnectionOpts, Fn, IConnection, ITransport, Thunk } from "./types.ts";
-import { Envelope, EnvelopeNotify, EnvelopeRequest } from "./types-envelope.ts";
-import { makeId } from "./util.ts";
+import {
+    Envelope,
+    EnvelopeNotify,
+    EnvelopeRequest,
+    EnvelopeResponseWithData,
+    EnvelopeResponseWithError,
+} from "./types-envelope.ts";
+import { Deferred, makeDeferred, makeId } from "./util.ts";
 
 export class Connection implements IConnection {
     isClosed: boolean = false;
@@ -11,6 +17,7 @@ export class Connection implements IConnection {
     methods: { [methodName: string]: Fn };
     description: string;
     _sendEnvelope: (env: Envelope) => Promise<void>;
+    _deferredRequests: Map<string, Deferred<any>> = new Map(); // keyed by env id
 
     constructor(opts: ConnectionOpts) {
         this.transport = opts.transport;
@@ -21,9 +28,52 @@ export class Connection implements IConnection {
     }
 
     async handleIncomingEnvelope(env: Envelope): Promise<void> {
-        // TODO: handle incoming NOTIFY: call the method
-        // TODO: handle incoming REQUEST: call the method and send out a RESPONSE envelope
-        // TODO: handle incoming RESPONSE: resolve a Deferred
+        if (env.kind === "NOTIFY") {
+            if (!this.methods.hasOwnProperty(env.method)) {
+                //error - unknown method -- do nothing
+                console.warn(`unknown method in NOTIFY: ${env.method}`);
+            } else {
+                await this.methods[env.method](...env.args);
+            }
+        } else if (env.kind === "REQUEST") {
+            try {
+                if (!this.methods.hasOwnProperty(env.method)) {
+                    console.warn(`unknown method in REQUEST: ${env.method}`);
+                    throw new Error(`unknown method in REQUEST: ${env.method}`);
+                }
+                let data = await this.methods[env.method](...env.args);
+                let responseEnvData: EnvelopeResponseWithData = {
+                    kind: "RESPONSE",
+                    fromDeviceId: this.deviceId,
+                    envelopeId: env.envelopeId,
+                    data,
+                };
+                await this._sendEnvelope(responseEnvData);
+            } catch (error) {
+                let responseEnvError: EnvelopeResponseWithError = {
+                    kind: "RESPONSE",
+                    fromDeviceId: this.deviceId,
+                    envelopeId: env.envelopeId,
+                    error: `${error}`,
+                };
+                await this._sendEnvelope(responseEnvError);
+            }
+        } else if (env.kind === "RESPONSE") {
+            // We got a response back, so look up and resolve the deferred we made when we sent the REQUEST
+            let deferred = this._deferredRequests.get(env.envelopeId);
+            if (deferred === undefined) {
+                console.warn(
+                    `got a RESPONSE with an envelopeId we did not expect: ${env.envelopeId}`,
+                );
+                return;
+            }
+            if ("data" in env) deferred.resolve(env.data);
+            else if ("error" in env) deferred.reject(new Error(env.error));
+            else console.warn("RESPONSE has neither data nor error.  this should never happen");
+            // Clean up.
+            // TODO: eventually clean up orphaned old deferreds that were never answered
+            this._deferredRequests.delete(env.envelopeId);
+        }
     }
 
     async notify(method: string, ...args: any[]): Promise<void> {
@@ -46,7 +96,11 @@ export class Connection implements IConnection {
             method,
             args,
         };
-        // TODO: make a Deferred and add it to a list to be handled in handleIncomingEnvelope
+        // save a deferred for when the response comes back
+        let deferred = makeDeferred<any>();
+        this._deferredRequests.set(env.envelopeId, deferred);
+        await this._sendEnvelope(env);
+        return deferred.promise;
     }
 
     onClose(cb: Thunk): Thunk {
