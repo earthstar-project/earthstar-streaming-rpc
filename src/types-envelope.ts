@@ -16,32 +16,32 @@
 */
 
 export type EnvelopeKind =
-    | "NOTIFY"
-    | "REQUEST"
-    | "RESPONSE";
+    | 'NOTIFY'
+    | 'REQUEST'
+    | 'RESPONSE';
 
 export interface EnvelopeNotify {
-    kind: "NOTIFY";
+    kind: 'NOTIFY';
     fromDeviceId: string;
     envelopeId: string;
     method: string;
     args: any[];
 }
 export interface EnvelopeRequest {
-    kind: "REQUEST";
+    kind: 'REQUEST';
     fromDeviceId: string;
     envelopeId: string;
     method: string;
     args: any[];
 }
 export interface EnvelopeResponseWithData {
-    kind: "RESPONSE";
+    kind: 'RESPONSE';
     fromDeviceId: string;
     envelopeId: string;
     data: any;
 }
 export interface EnvelopeResponseWithError {
-    kind: "RESPONSE";
+    kind: 'RESPONSE';
     fromDeviceId: string;
     envelopeId: string;
     error: string;

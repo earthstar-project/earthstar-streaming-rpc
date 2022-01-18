@@ -1,4 +1,4 @@
-import { Envelope } from "./types-envelope.ts";
+import { Envelope } from './types-envelope.ts';
 
 export type Thunk = () => void;
 export type Fn = (...args: any[]) => any;
@@ -50,10 +50,10 @@ export interface ConnectionOpts {
  * CLOSED means it's never coming back.
  */
 export type ConnectionStatus =
-    | "CONNECTING"
-    | "OPEN"
-    | "ERROR"
-    | "CLOSED";
+    | 'CONNECTING'
+    | 'OPEN'
+    | 'ERROR'
+    | 'CLOSED';
 
 /**
  * Converts method calls to Envelopes and passes them to a Postman.

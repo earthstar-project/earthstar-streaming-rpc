@@ -1,15 +1,15 @@
-import { ConnectionOpts, Fn, IConnection, ITransport, ConnectionStatus, Thunk } from "./types.ts";
+import { ConnectionOpts, ConnectionStatus, Fn, IConnection, ITransport, Thunk } from './types.ts';
 import {
     Envelope,
     EnvelopeNotify,
     EnvelopeRequest,
     EnvelopeResponseWithData,
     EnvelopeResponseWithError,
-} from "./types-envelope.ts";
-import { Deferred, makeDeferred, makeId } from "./util.ts";
+} from './types-envelope.ts';
+import { Deferred, makeDeferred, makeId } from './util.ts';
 
 export class Connection implements IConnection {
-    status: ConnectionStatus = "CONNECTING";
+    status: ConnectionStatus = 'CONNECTING';
     _closeCbs: Set<Thunk> = new Set();
 
     description: string;
@@ -29,16 +29,16 @@ export class Connection implements IConnection {
     }
 
     get isClosed() {
-        return this.status === "CLOSED";
+        return this.status === 'CLOSED';
     }
     onClose(cb: Thunk): Thunk {
-        if (this.isClosed) throw new Error("the connection is closed");
+        if (this.isClosed) throw new Error('the connection is closed');
         this._closeCbs.add(cb);
         return () => this._closeCbs.delete(cb);
     }
     close(): void {
         if (this.isClosed) return;
-        this.status = "CLOSED";
+        this.status = 'CLOSED';
         for (const cb of this._closeCbs) cb();
         this._closeCbs = new Set();
         this._transport.connections = this._transport.connections.filter(
@@ -47,15 +47,15 @@ export class Connection implements IConnection {
     }
 
     async handleIncomingEnvelope(env: Envelope): Promise<void> {
-        if (this.isClosed) throw new Error("the connection is closed");
-        if (env.kind === "NOTIFY") {
+        if (this.isClosed) throw new Error('the connection is closed');
+        if (env.kind === 'NOTIFY') {
             if (!Object.prototype.hasOwnProperty.call(env, env.method)) {
                 //error - unknown method -- do nothing because this is a notify
                 console.warn(`unknown method in NOTIFY: ${env.method}`);
             } else {
                 await this._methods[env.method](...env.args);
             }
-        } else if (env.kind === "REQUEST") {
+        } else if (env.kind === 'REQUEST') {
             try {
                 if (!Object.prototype.hasOwnProperty.call(env, env.method)) {
                     console.warn(`unknown method in REQUEST: ${env.method}`);
@@ -63,7 +63,7 @@ export class Connection implements IConnection {
                 }
                 const data = await this._methods[env.method](...env.args);
                 const responseEnvData: EnvelopeResponseWithData = {
-                    kind: "RESPONSE",
+                    kind: 'RESPONSE',
                     fromDeviceId: this._deviceId,
                     envelopeId: env.envelopeId,
                     data,
@@ -71,14 +71,14 @@ export class Connection implements IConnection {
                 await this._sendEnvelope(this, responseEnvData);
             } catch (error) {
                 const responseEnvError: EnvelopeResponseWithError = {
-                    kind: "RESPONSE",
+                    kind: 'RESPONSE',
                     fromDeviceId: this._deviceId,
                     envelopeId: env.envelopeId,
                     error: `${error}`,
                 };
                 await this._sendEnvelope(this, responseEnvError);
             }
-        } else if (env.kind === "RESPONSE") {
+        } else if (env.kind === 'RESPONSE') {
             // We got a response back, so look up and resolve the deferred we made when we sent the REQUEST
             const deferred = this._deferredRequests.get(env.envelopeId);
             if (deferred === undefined) {
@@ -87,9 +87,9 @@ export class Connection implements IConnection {
                 );
                 return;
             }
-            if ("data" in env) deferred.resolve(env.data);
-            else if ("error" in env) deferred.reject(new Error(env.error));
-            else console.warn("RESPONSE has neither data nor error.  this should never happen");
+            if ('data' in env) deferred.resolve(env.data);
+            else if ('error' in env) deferred.reject(new Error(env.error));
+            else console.warn('RESPONSE has neither data nor error.  this should never happen');
             // Clean up.
             // TODO: eventually clean up orphaned old deferreds that were never answered
             this._deferredRequests.delete(env.envelopeId);
@@ -97,9 +97,9 @@ export class Connection implements IConnection {
     }
 
     async notify(method: string, ...args: any[]): Promise<void> {
-        if (this.isClosed) throw new Error("the connection is closed");
+        if (this.isClosed) throw new Error('the connection is closed');
         const env: EnvelopeNotify = {
-            kind: "NOTIFY",
+            kind: 'NOTIFY',
             fromDeviceId: this._deviceId,
             envelopeId: makeId(),
             method,
@@ -108,9 +108,9 @@ export class Connection implements IConnection {
         await this._sendEnvelope(this, env);
     }
     async request(method: string, ...args: any[]): Promise<any> {
-        if (this.isClosed) throw new Error("the connection is closed");
+        if (this.isClosed) throw new Error('the connection is closed');
         const env: EnvelopeRequest = {
-            kind: "REQUEST",
+            kind: 'REQUEST',
             fromDeviceId: this._deviceId,
             envelopeId: makeId(),
             method,

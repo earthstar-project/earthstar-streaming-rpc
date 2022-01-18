@@ -51,4 +51,4 @@ export const randInt = (lo: number, hi: number): number =>
     lo + Math.floor(Math.random() * (hi - lo));
 
 /** Make a random string id */
-export const makeId = (): string => ("" + randInt(0, 999999999999999)).padStart(15, "0");
+export const makeId = (): string => ('' + randInt(0, 999999999999999)).padStart(15, '0');
