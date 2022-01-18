@@ -1,4 +1,4 @@
-.PHONY: clean test test-watch test-coverage show-coverage coverage npm fmt depchart
+.PHONY: clean example example-npm lint test test-watch test-coverage show-coverage coverage npm fmt depchart-simple depchart-full depchart
 
 clean:
 	rm -rf npm build .nyc_output coverage *.bundle.js cov.lcov coverage_html cov_profile node_modules
@@ -8,6 +8,9 @@ example:
 
 example-npm:
 	node npm/esm/example.js
+
+lint:
+	deno lint --rules-exclude=no-explicit-any,no-unused-vars *.ts scripts src
 
 test:
 	deno test src

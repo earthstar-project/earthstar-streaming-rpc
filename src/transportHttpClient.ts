@@ -3,7 +3,7 @@ import { Envelope } from "./types-envelope.ts";
 import { Connection } from "./connection.ts";
 
 export class TransportHttpClient implements ITransport {
-    isClosed: boolean = false;
+    isClosed = false;
     _closeCbs: Set<Thunk> = new Set();
     deviceId: string;
     methods: { [methodName: string]: Fn };
@@ -14,9 +14,9 @@ export class TransportHttpClient implements ITransport {
         this.methods = opts.methods;
     }
 
-    async addConnection(url: string): Promise<Connection> {
+    addConnection(url: string): Connection {
         // TODO: set up http connection
-        let conn = new Connection({
+        const conn = new Connection({
             transport: this,
             deviceId: this.deviceId,
             description: url,
@@ -24,7 +24,7 @@ export class TransportHttpClient implements ITransport {
             sendEnvelope: async (env: Envelope) => {
                 // send envelope in its own HTTP POST.
                 // The caller (from Connection) is responsible for checking if the conn is closed.
-                let res = await fetch(url, {
+                const res = await fetch(url, {
                     method: "POST",
                     headers: {
                         "Accept": "application/json",
@@ -36,7 +36,7 @@ export class TransportHttpClient implements ITransport {
                     // TODO: error state for connections
                     console.warn(`POST to ${url} resulted in http ${res.status}`);
                 } else {
-                    let resJson = await res.json();
+                    const resJson = await res.json();
                     console.log("successful POST of an envelope.  got back:", resJson);
                 }
             },
@@ -54,9 +54,9 @@ export class TransportHttpClient implements ITransport {
     close(): void {
         if (this.isClosed) return;
         this.isClosed = true;
-        for (let cb of this._closeCbs) cb();
+        for (const cb of this._closeCbs) cb();
         this._closeCbs = new Set();
-        for (let conn of this.connections.values()) {
+        for (const conn of this.connections.values()) {
             conn.close();
         }
     }

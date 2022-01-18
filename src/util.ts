@@ -11,7 +11,7 @@ export interface Deferred<T> {
 }
 
 export const makeDeferred = <T>(): Deferred<T> => {
-    let def: any = {};
+    const def: any = {};
     def.promise = new Promise<T>((resolve, reject) => {
         def.resolve = resolve;
         def.reject = reject;
@@ -43,7 +43,7 @@ export const makeExposedStream = (src: UnderlyingSource) => {
     };
 };
 
-export const sleep = async (ms: number): Promise<void> =>
+export const sleep = (ms: number): Promise<void> =>
     new Promise((resolve, reject) => setTimeout(resolve, ms));
 
 /** Return a random integer (inclusive of endpoints) */

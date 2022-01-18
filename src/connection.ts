@@ -9,7 +9,7 @@ import {
 import { Deferred, makeDeferred, makeId } from "./util.ts";
 
 export class Connection implements IConnection {
-    isClosed: boolean = false;
+    isClosed = false;
     _closeCbs: Set<Thunk> = new Set();
     transport: ITransport;
     deviceId: string;
@@ -30,20 +30,20 @@ export class Connection implements IConnection {
     async handleIncomingEnvelope(env: Envelope): Promise<void> {
         if (this.isClosed) throw new Error("connection is closed");
         if (env.kind === "NOTIFY") {
-            if (!this.methods.hasOwnProperty(env.method)) {
-                //error - unknown method -- do nothing
+            if (!Object.prototype.hasOwnProperty.call(env, env.method)) {
+                //error - unknown method -- do nothing because this is a notify
                 console.warn(`unknown method in NOTIFY: ${env.method}`);
             } else {
                 await this.methods[env.method](...env.args);
             }
         } else if (env.kind === "REQUEST") {
             try {
-                if (!this.methods.hasOwnProperty(env.method)) {
+                if (!Object.prototype.hasOwnProperty.call(env, env.method)) {
                     console.warn(`unknown method in REQUEST: ${env.method}`);
                     throw new Error(`unknown method in REQUEST: ${env.method}`);
                 }
-                let data = await this.methods[env.method](...env.args);
-                let responseEnvData: EnvelopeResponseWithData = {
+                const data = await this.methods[env.method](...env.args);
+                const responseEnvData: EnvelopeResponseWithData = {
                     kind: "RESPONSE",
                     fromDeviceId: this.deviceId,
                     envelopeId: env.envelopeId,
@@ -52,7 +52,7 @@ export class Connection implements IConnection {
                 if (this.isClosed) throw new Error("connection is closed");
                 await this._sendEnvelope(responseEnvData);
             } catch (error) {
-                let responseEnvError: EnvelopeResponseWithError = {
+                const responseEnvError: EnvelopeResponseWithError = {
                     kind: "RESPONSE",
                     fromDeviceId: this.deviceId,
                     envelopeId: env.envelopeId,
@@ -63,7 +63,7 @@ export class Connection implements IConnection {
             }
         } else if (env.kind === "RESPONSE") {
             // We got a response back, so look up and resolve the deferred we made when we sent the REQUEST
-            let deferred = this._deferredRequests.get(env.envelopeId);
+            const deferred = this._deferredRequests.get(env.envelopeId);
             if (deferred === undefined) {
                 console.warn(
                     `got a RESPONSE with an envelopeId we did not expect: ${env.envelopeId}`,
@@ -81,7 +81,7 @@ export class Connection implements IConnection {
 
     async notify(method: string, ...args: any[]): Promise<void> {
         if (this.isClosed) throw new Error("connection is closed");
-        let env: EnvelopeNotify = {
+        const env: EnvelopeNotify = {
             kind: "NOTIFY",
             fromDeviceId: this.deviceId,
             envelopeId: makeId(),
@@ -92,7 +92,7 @@ export class Connection implements IConnection {
     }
     async request(method: string, ...args: any[]): Promise<any> {
         if (this.isClosed) throw new Error("connection is closed");
-        let env: EnvelopeRequest = {
+        const env: EnvelopeRequest = {
             kind: "REQUEST",
             fromDeviceId: this.deviceId,
             envelopeId: makeId(),
@@ -100,7 +100,7 @@ export class Connection implements IConnection {
             args,
         };
         // save a deferred for when the response comes back
-        let deferred = makeDeferred<any>();
+        const deferred = makeDeferred<any>();
         this._deferredRequests.set(env.envelopeId, deferred);
         await this._sendEnvelope(env);
         return deferred.promise;
@@ -115,7 +115,7 @@ export class Connection implements IConnection {
     close(): void {
         if (this.isClosed) return;
         this.isClosed = true;
-        for (let cb of this._closeCbs) cb();
+        for (const cb of this._closeCbs) cb();
         this._closeCbs = new Set();
         this.transport.connections = this.transport.connections.filter(
             (c) => c !== this,
