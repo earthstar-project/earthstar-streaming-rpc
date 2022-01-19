@@ -56,7 +56,7 @@ export class Connection implements IConnection {
         if (this.isClosed) throw new Error('the connection is closed');
         log(`${this.description} | incoming envelope:`, env);
         if (env.kind === 'NOTIFY') {
-            if (!Object.prototype.hasOwnProperty.call(env, env.method)) {
+            if (!Object.prototype.hasOwnProperty.call(this._methods, env.method)) {
                 //error - unknown method -- do nothing because this is a notify
                 console.warn(`unknown method in NOTIFY: ${env.method}`);
             } else {
@@ -64,7 +64,7 @@ export class Connection implements IConnection {
             }
         } else if (env.kind === 'REQUEST') {
             try {
-                if (!Object.prototype.hasOwnProperty.call(env, env.method)) {
+                if (!Object.prototype.hasOwnProperty.call(this._methods, env.method)) {
                     console.warn(`unknown method in REQUEST: ${env.method}`);
                     throw new Error(`unknown method in REQUEST: ${env.method}`);
                 }
@@ -101,6 +101,7 @@ export class Connection implements IConnection {
             // TODO: eventually clean up orphaned old deferreds that were never answered
             this._deferredRequests.delete(env.envelopeId);
         }
+        log(`${this.description} | ...done with incoming envelope`);
     }
 
     async notify(method: string, ...args: any[]): Promise<void> {

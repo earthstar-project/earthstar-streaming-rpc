@@ -41,7 +41,9 @@ export const makeExposedStream = (source: UnderlyingSource = {}): ExposedReadabl
     };
     if (source.pull) newSource.pull = source.pull;
     if (source.cancel) newSource.cancel = source.cancel;
-    const stream = new ReadableStream(newSource);
+    const stream = new ReadableStream(newSource, {
+        highWaterMark: 0,
+    });
     return {
         stream,
         controller: exposedController as any as ReadableStreamDefaultController,
@@ -57,3 +59,7 @@ export const randInt = (lo: number, hi: number): number =>
 
 /** Make a random string id */
 export const makeId = (): string => ('' + randInt(0, 999999999999999)).padStart(15, '0');
+
+export const setImmediate2 = (fn: any) => {
+    Promise.resolve().then(fn);
+};

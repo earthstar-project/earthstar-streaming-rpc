@@ -1,5 +1,5 @@
 import { Fn, IConnection, ITransport, ITransportOpts, Thunk } from './types.ts';
-import { ExposedReadableStream, makeExposedStream } from './util.ts';
+import { ExposedReadableStream, makeExposedStream, setImmediate2 } from './util.ts';
 import { Envelope } from './types-envelope.ts';
 import { Connection } from './connection.ts';
 
@@ -30,13 +30,12 @@ export class TransportExposedStreams implements ITransport {
     description: string;
     inStream: ExposedReadableStream;
     outStream: ExposedReadableStream;
-    _readThread: null | any = null;
 
     constructor(opts: ITransportWebStreamOpts) {
         log(`TransportExposedStreams constructor: ${opts.deviceId} "${opts.description}"`);
         this.deviceId = opts.deviceId;
         this.methods = opts.methods;
-        this.description = `device ${opts.description}`;
+        this.description = `transport ${opts.description}`;
         this.inStream = opts.inStream;
         this.outStream = opts.outStream;
         this.connections.push(
@@ -46,30 +45,40 @@ export class TransportExposedStreams implements ITransport {
                 deviceId: this.deviceId,
                 methods: this.methods,
                 sendEnvelope: async (conn: IConnection, env: Envelope): Promise<void> => {
-                    log('sending envelope to outStream:', env);
+                    log(`${this.deviceId} | sending envelope to outStream:`, env);
                     try {
                         await this.outStream.controller.enqueue(env);
                     } catch (error) {
                         log(error);
-                        log('cannot send to outStream, it must be closed.  closing the Transport.');
+                        log(`${this.deviceId} | cannot send to outStream, it must be closed.  closing the Transport.`);
                         this.close();
                     }
                 },
             }),
         );
-        const reader = this.inStream.stream.getReader();
-        this._readThread = setTimeout(async () => {
+        setImmediate2(async () => {
+            log(`${this.deviceId} | starting read thread`);
+            const reader = this.inStream.stream.getReader();
             while (true) {
                 let { value, done } = await reader.read();
-                if (done) break;
-                log('incoming envelope:', value);
-                log('...incoming envelope, passing it to the Connection to handle...');
+                if (this.isClosed) {
+                    log(`${this.deviceId} | transport is closed; ending the read thread.`);
+                }
+                if (done) {
+                    log(`${this.deviceId} | inStream was closed.  closing the Transport.`);
+                    this.close();
+                    return;
+                }
+                log(`${this.deviceId} | incoming envelope:`, value);
+                log(`${this.deviceId} | ...incoming envelope, passing it to the Connection to handle...`);
+
                 await this.connections[0].handleIncomingEnvelope(value);
-                log('...incoming envelope: Connection is done handling it.');
+                log(`${this.deviceId} | ...incoming envelope: Connection is done handling it.`);
+                if (this.isClosed) {
+                    log(`${this.deviceId} | transport is closed; ending the read thread.`);
+                }
             }
-            log('inStream was closed.  closing the Transport.');
-            this.close();
-        }, 0);
+        });
     }
 
     onClose(cb: Thunk): Thunk {
@@ -79,16 +88,26 @@ export class TransportExposedStreams implements ITransport {
 
     close(): void {
         if (this.isClosed) return;
-        log('closing...');
+
+        log(`${this.deviceId} | closing...`);
         this.isClosed = true;
-        if (this._readThread !== null) clearTimeout(this._readThread);
+
         for (const cb of this._closeCbs) cb();
         this._closeCbs = new Set();
-        log('...closing connections...');
+
+        log(`${this.deviceId} | ...closing streams...`);
+        try {
+            this.inStream.controller.close();
+        } catch (error) {}
+        try {
+            this.outStream.controller.close();
+        } catch (error) {}
+
+        log(`${this.deviceId} | ...closing connections...`);
         for (const conn of this.connections.values()) {
             conn.close();
         }
-        log('...closed');
+        log(`${this.deviceId} | ...closed`);
     }
 }
 

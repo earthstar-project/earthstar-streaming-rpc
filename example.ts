@@ -1,12 +1,14 @@
 import { makeId, TransportHttpClient } from './mod.ts';
-import { makeLocalTransportPair } from './src/transportExposedStreams.ts';
+import { sleep } from './src/util.ts';
 import { logMain as log } from './src/log.ts';
+import { makeLocalTransportPair } from './src/transportExposedStreams.ts';
 
 log('----------------------------------------');
 
 log('setting up basic variables');
 const deviceId = makeId();
 const methods = {
+    shout: (s: string) => console.log(`!! ${s.toLocaleUpperCase()} !!`),
     hello: (name: string) => `hello ${name}!`,
     add: (x: number, y: number) => x + y,
 };
@@ -19,11 +21,12 @@ log('making local pair of transports');
 const { streamAtoB, streamBtoA, transA, transB } = makeLocalTransportPair(methods);
 const connAtoB = transA.connections[0];
 const connBtoA = transB.connections[0];
+//await sleep(10);
 
 log('----------------------------------------');
 
 log('notify');
-await connAtoB.notify('hello', 'world');
+await connAtoB.notify('shout', 'hello');
 
 log('----------------------------------------');
 
@@ -47,7 +50,10 @@ for (const conn of transport.connections) {
 log('----------------------------------------');
 
 log('closing transports');
+// closing one will close the other one too (via its connection, via its streams)
 transA.close();
-transB.close();
+//transB.close();
 
 log('----------------------------------------');
+
+await sleep(50);
