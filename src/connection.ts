@@ -23,12 +23,12 @@ export class Connection implements IConnection {
     _deferredRequests: Map<string, Deferred<any>> = new Map(); // keyed by env id
 
     constructor(opts: ConnectionOpts) {
+        log(`Connection constructor: ${opts.deviceId} "${opts.description}"`);
         this._transport = opts.transport;
         this._deviceId = opts.deviceId;
         this.description = opts.description;
         this._methods = opts.methods;
         this._sendEnvelope = opts.sendEnvelope;
-        log('constructor for', this.description);
     }
 
     get isClosed() {
@@ -41,7 +41,7 @@ export class Connection implements IConnection {
     }
     close(): void {
         if (this.isClosed) return;
-        log('closing...');
+        log(`${this.description} | closing...`);
         this.status = 'CLOSED';
         for (const cb of this._closeCbs) cb();
         this._closeCbs = new Set();
@@ -49,12 +49,12 @@ export class Connection implements IConnection {
         this._transport.connections = this._transport.connections.filter(
             (c) => c !== this,
         );
-        log('...closed');
+        log(`${this.description} | ...closed.`);
     }
 
     async handleIncomingEnvelope(env: Envelope): Promise<void> {
         if (this.isClosed) throw new Error('the connection is closed');
-        log('incoming envelope:', env);
+        log(`${this.description} | incoming envelope:`, env);
         if (env.kind === 'NOTIFY') {
             if (!Object.prototype.hasOwnProperty.call(env, env.method)) {
                 //error - unknown method -- do nothing because this is a notify
@@ -108,27 +108,29 @@ export class Connection implements IConnection {
         const env: EnvelopeNotify = {
             kind: 'NOTIFY',
             fromDeviceId: this._deviceId,
-            envelopeId: makeId(),
+            envelopeId: 'env:' + makeId(),
             method,
             args,
         };
-        log('outgoing NOTIFY', env);
+        log(`${this.description} | sending NOTIFY:`, env);
         await this._sendEnvelope(this, env);
+        log(`${this.description} | done sending NOTIFY.`);
     }
     async request(method: string, ...args: any[]): Promise<any> {
         if (this.isClosed) throw new Error('the connection is closed');
         const env: EnvelopeRequest = {
             kind: 'REQUEST',
             fromDeviceId: this._deviceId,
-            envelopeId: makeId(),
+            envelopeId: 'env:' + makeId(),
             method,
             args,
         };
         // save a deferred for when the response comes back
         const deferred = makeDeferred<any>();
         this._deferredRequests.set(env.envelopeId, deferred);
-        log('outgoing REQUEST', env);
+        log(`${this.description} | sending REQUEST:`, env);
         await this._sendEnvelope(this, env);
+        log(`${this.description} | done sending REQUEST.`);
         return deferred.promise;
     }
 }

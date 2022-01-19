@@ -1,5 +1,8 @@
 import { makeId, TransportHttpClient } from './mod.ts';
+import { makeLocalTransportPair } from './src/transportExposedStreams.ts';
 import { logMain as log } from './src/log.ts';
+
+log('----------------------------------------');
 
 log('setting up basic variables');
 const deviceId = makeId();
@@ -7,26 +10,28 @@ const methods = {
     hello: (name: string) => `hello ${name}!`,
     add: (x: number, y: number) => x + y,
 };
-const pubUrls = ['https://localhost:8077'];
 log('    deviceId:', deviceId);
 log('    methods:', methods);
-log('    pubUrls:', pubUrls);
 
 log('----------------------------------------');
 
-log('instantiating transport');
-const transport = new TransportHttpClient({
-    deviceId,
-    methods,
-});
-log('adding a connection for each pub url');
-for (const url of pubUrls) {
-    log('    *', url);
-    const conn = transport.addConnection(url);
-}
+log('making local pair of transports');
+const { streamAtoB, streamBtoA, transA, transB } = makeLocalTransportPair(methods);
+const connAtoB = transA.connections[0];
+const connBtoA = transB.connections[0];
 
 log('----------------------------------------');
 
+log('notify');
+await connAtoB.notify('hello', 'world');
+
+log('----------------------------------------');
+
+//log('request');
+//const result = await connAtoB.request('add', 1, 2);
+//log('result =', result);
+
+/*
 log('calling methods on connections');
 for (const conn of transport.connections) {
     log('--- conn:');
@@ -37,8 +42,12 @@ for (const conn of transport.connections) {
     const three = await conn.request('add', 1, 2);
     log('--- result of add:', three);
 }
+*/
 
 log('----------------------------------------');
 
-log('closing transport');
-transport.close();
+log('closing transports');
+transA.close();
+transB.close();
+
+log('----------------------------------------');

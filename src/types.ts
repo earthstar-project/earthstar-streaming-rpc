@@ -4,7 +4,9 @@ export type Thunk = () => void;
 export type Fn = (...args: any[]) => any;
 
 /**
- * Options for the Scribe constructor.
+ * Typical options for the Transport constructor.
+ *
+ * But note that each flavor of Transport will have a slightly different constructor
  */
 export interface ITransportOpts {
     deviceId: string; // id of this device
@@ -37,6 +39,7 @@ export interface ConnectionOpts {
     deviceId: string;
     methods: { [methodName: string]: Fn };
 
+    // conn will be "this"
     sendEnvelope: (conn: IConnection, env: Envelope) => Promise<void>;
 }
 

@@ -27,19 +27,24 @@ export const makeDeferred = <T>(): Deferred<T> => {
  *
  * `controller.enqueue(...)`
  */
-export const makeExposedStream = (src: UnderlyingSource) => {
-    let exposedController: null | ReadableStreamDefaultController = null;
-    const stream = new ReadableStream({
-        start: (controller) => {
+export interface ExposedReadableStream {
+    stream: ReadableStream;
+    controller: ReadableStreamDefaultController;
+}
+export const makeExposedStream = (source: UnderlyingSource = {}): ExposedReadableStream => {
+    let exposedController;
+    let newSource: any = {
+        start: (controller: ReadableStreamDefaultController) => {
             exposedController = controller;
-            if (src.start) src.start(controller);
+            if (source.start) source.start(controller);
         },
-        pull: src.pull,
-        cancel: src.cancel,
-    });
+    };
+    if (source.pull) newSource.pull = source.pull;
+    if (source.cancel) newSource.cancel = source.cancel;
+    const stream = new ReadableStream(newSource);
     return {
         stream,
-        controller: exposedController as null | ReadableStreamDefaultController,
+        controller: exposedController as any as ReadableStreamDefaultController,
     };
 };
 
