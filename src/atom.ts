@@ -25,7 +25,7 @@ export class Atom<T> {
 export class AtomList<T> {
     arr: T[];
     _subscriptions: Set<SubscriptionFn<T[]>>;
-    constructor(v: T[]) {
+    constructor(v: T[] = []) {
         this.arr = v;
         this._subscriptions = new Set();
     }
@@ -46,8 +46,10 @@ export class AtomList<T> {
     get length(): number {
         return this.arr.length;
     }
-    [Symbol.iterator]() {
-        return this.arr;
+    *[Symbol.iterator]() {
+        for (let item of this.arr) {
+            yield item;
+        }
     }
     //---------------------------------------------
     // READS

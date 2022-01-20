@@ -48,7 +48,7 @@ export class TransportLocal implements ITransport {
         this._closeCbs = new Set();
 
         log(`${this.deviceId} | ...closing connections...`);
-        for (const conn of this.connections.values()) {
+        for (const conn of this.connections) {
             conn.close();
         }
         log(`${this.deviceId} | ...closed`);

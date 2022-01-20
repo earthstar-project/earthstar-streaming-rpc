@@ -30,7 +30,7 @@ export class TransportHttpClient implements ITransport {
         for (const cb of this._closeCbs) cb();
         this._closeCbs = new Set();
         log('...closing connections...');
-        for (const conn of this.connections.values()) {
+        for (const conn of this.connections) {
             conn.close();
         }
         log('...closed');
