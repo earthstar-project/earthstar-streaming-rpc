@@ -1,24 +1,9 @@
-import { assert, assertEquals, equal as deepEqual } from './asserts.ts';
-import { makeLocalTransportPair, TransportExposedStreams } from '../transportExposedStreams.ts';
+import { assert, assertEquals } from './asserts.ts';
+import { makeLocalTransportPair, TransportExposedStreams } from '../transport-exposed-streams.ts';
+
+import { EventLog } from './event-log.ts';
 
 //================================================================================
-
-class EventLog {
-    observed: any[] = []
-    expected: any[] = []
-    constructor() {}
-    expect(x: any) { this.expected.push(x); }
-    observe(x: any) { this.observed.push(x); }
-    note(x: any) { this.expected.push(x); this.observed.push(x); }
-    assert(s: string = 'eventLog matches') {
-        if (!deepEqual(this.observed, this.expected)) {
-            console.log('event log does not match:');
-            console.log('observed:', this.observed);
-            console.log('expected:', this.expected);
-        }
-        assertEquals(this.observed, this.expected, s);
-    }
-}
 
 Deno.test('constructors', async () => {
     let e = new EventLog();

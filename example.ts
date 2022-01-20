@@ -1,7 +1,7 @@
 import { makeId, TransportHttpClient } from './mod.ts';
 import { sleep } from './src/util.ts';
 import { logMain as log } from './src/log.ts';
-import { makeLocalTransportPair } from './src/transportExposedStreams.ts';
+import { makeLocalTransportPair } from './src/transport-exposed-streams.ts';
 
 const main = async () => {
     log('----------------------------------------');

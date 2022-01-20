@@ -1,7 +1,7 @@
 export * from "./src/types-envelope.ts";
 export * from "./src/types.ts";
 
-export * from "./src/util.ts";
-
-export * from "./src/transportHttpClient.ts";
 export * from "./src/connection.ts";
+export * from "./src/transport-exposed-streams.ts";
+export * from "./src/transport-http-client.ts";
+export * from "./src/util.ts";
