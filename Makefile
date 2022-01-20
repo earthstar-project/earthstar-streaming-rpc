@@ -4,7 +4,7 @@ clean:
 	rm -rf npm build .nyc_output coverage *.bundle.js cov.lcov coverage_html cov_profile node_modules
 
 example:
-	deno run -A example.ts
+	VERBOSE=true deno run -A example.ts
 
 example-npm:
 	node npm/esm/example.js
@@ -13,10 +13,10 @@ lint:
 	deno lint --rules-exclude=no-explicit-any,no-unused-vars *.ts scripts src
 
 test:
-	deno test src
+	deno test -A src
 
 test-watch:
-	deno test --watch src
+	deno test -A --watch src
 
 test-coverage:
 	deno test --no-check --coverage=cov_profile src
