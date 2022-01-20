@@ -1,7 +1,7 @@
 import { makeId, TransportHttpClient } from './mod.ts';
 import { sleep } from './src/util.ts';
 import { logMain as log } from './src/log.ts';
-import { makeLocalTransportPair } from './src/transport-exposed-streams.ts';
+import { makeLocalTransportPair } from './src/transport-local.ts';
 
 const main = async () => {
     log('----------------------------------------');
@@ -19,11 +19,9 @@ const main = async () => {
     log('----------------------------------------');
 
     log('making local pair of transports');
-    const { streamAtoB, streamBtoA, transA, transB } = makeLocalTransportPair(
+    const { thisConn: connAtoB, otherConn: connBtoA, transA, transB } = makeLocalTransportPair(
         methods,
     );
-    const connAtoB = transA.connections[0];
-    const connBtoA = transB.connections[0];
     //await sleep(10);
 
     log('----------------------------------------');

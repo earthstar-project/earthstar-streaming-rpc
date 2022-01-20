@@ -22,4 +22,8 @@ export class EventLog {
         }
         assertEquals(this.observed, this.expected, s);
     }
+    clear() {
+        this.observed = [];
+        this.expected = [];
+    }
 }

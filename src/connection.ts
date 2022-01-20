@@ -58,18 +58,20 @@ export class Connection implements IConnection {
         if (env.kind === 'NOTIFY') {
             if (!Object.prototype.hasOwnProperty.call(this._methods, env.method)) {
                 //error - unknown method -- do nothing because this is a notify
-                console.warn(`unknown method in NOTIFY: ${env.method}`);
+                //console.warn(`unknown method in NOTIFY: ${env.method}`);
             } else {
                 try {
                     await this._methods[env.method](...env.args);
                 } catch (error) {
-                    console.warn(`error when running NOTIFY method:`, env, error);
+                    // silently swallow the error - in notify mode there's no place for there
+                    // error to emerge
+                    //console.warn(`error when running NOTIFY method:`, env, error);
                 }
             }
         } else if (env.kind === 'REQUEST') {
             try {
                 if (!Object.prototype.hasOwnProperty.call(this._methods, env.method)) {
-                    console.warn(`unknown method in REQUEST: ${env.method}`);
+                    //console.warn(`unknown method in REQUEST: ${env.method}`);
                     throw new Error(`unknown method in REQUEST: ${env.method}`);
                 }
                 const data = await this._methods[env.method](...env.args);
@@ -93,17 +95,17 @@ export class Connection implements IConnection {
             // We got a response back, so look up and resolve the deferred we made when we sent the REQUEST
             const deferred = this._deferredRequests.get(env.envelopeId);
             if (deferred === undefined) {
-                console.warn(
-                    `got a RESPONSE with an envelopeId we did not expect: ${env.envelopeId}`,
-                );
+                //console.warn(
+                //    `got a RESPONSE with an envelopeId we did not expect: ${env.envelopeId}`,
+                //);
                 return;
             }
             if ('data' in env) deferred.resolve(env.data);
             else if ('error' in env) deferred.reject(new Error(env.error));
             else {
-                console.warn(
-                    'RESPONSE has neither data nor error.  this should never happen',
-                );
+                //console.warn(
+                //    'RESPONSE has neither data nor error.  this should never happen',
+                //);
             }
             // Clean up.
             // TODO: eventually clean up orphaned old deferreds that were never answered
