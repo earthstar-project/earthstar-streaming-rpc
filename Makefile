@@ -13,13 +13,13 @@ lint:
 	deno lint --rules-exclude=no-explicit-any,no-unused-vars,no-empty,no-inferrable-types *.ts scripts src
 
 test:
-	deno test -A src
+	deno test -A --unstable src
 
 test-watch:
-	deno test -A --watch src
+	deno test -A --unstable --watch src
 
 test-coverage:
-	deno test --no-check --coverage=cov_profile src
+	deno test --no-check --unstable --coverage=cov_profile src
 
 # to get "genhtml", run "sudo apt-get install lcov" (on linux) or "brew install lcov" (on mac)
 show-coverage:
