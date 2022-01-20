@@ -1,5 +1,6 @@
-import { Fn, IConnection, ITransport, Thunk } from './types.ts';
+import { Fn, IConnection, ITransport, Thunk, TransportStatus } from './types.ts';
 import { Envelope } from './types-envelope.ts';
+import { Watchable } from './watchable.ts';
 import { Connection } from './connection.ts';
 
 import { logTransport as log } from './log.ts';
@@ -19,8 +20,7 @@ export interface ITransportLocalOpts {
  * If either stream ends or is closed, the Transport will be closed (along with its only Connection).
  */
 export class TransportLocal implements ITransport {
-    isClosed = false;
-    _closeCbs: Set<Thunk> = new Set();
+    status: Watchable<TransportStatus> = new Watchable('OPEN' as TransportStatus);
     deviceId: string;
     methods: { [methodName: string]: Fn };
     connections: IConnection[] = [];
@@ -33,19 +33,18 @@ export class TransportLocal implements ITransport {
         this.description = `transport ${opts.description}`;
     }
 
+    get isClosed() {
+        return this.status.value === 'CLOSED';
+    }
     onClose(cb: Thunk): Thunk {
-        this._closeCbs.add(cb);
-        return () => this._closeCbs.delete(cb);
+        return this.status.onChangeTo('CLOSED', cb);
     }
 
     close(): void {
         if (this.isClosed) return;
 
         log(`${this.deviceId} | closing...`);
-        this.isClosed = true;
-
-        for (const cb of this._closeCbs) cb();
-        this._closeCbs = new Set();
+        this.status.set('CLOSED');
 
         log(`${this.deviceId} | ...closing connections...`);
         for (const conn of this.connections) {
@@ -55,6 +54,7 @@ export class TransportLocal implements ITransport {
     }
 
     addConnection(otherTrans: TransportLocal) {
+        if (this.isClosed) throw new Error("Can't use a transport after it's closed");
         // deno-lint-ignore prefer-const
         let thisConn: Connection;
         // deno-lint-ignore prefer-const

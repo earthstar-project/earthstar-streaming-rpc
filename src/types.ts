@@ -1,4 +1,5 @@
 import { Envelope } from './types-envelope.ts';
+import { Watchable } from './watchable.ts';
 
 export type Thunk = () => void;
 export type Fn = (...args: any[]) => any;
@@ -19,9 +20,10 @@ export interface ITransportOpts {
  *
  * Creates Connections.
  */
+export type TransportStatus = 'OPEN' | 'CLOSED'
 export interface ITransport {
+    status: Watchable<TransportStatus>;
     isClosed: boolean;
-    _closeCbs: Set<Thunk>;
 
     methods: { [methodName: string]: Fn };
     deviceId: string;

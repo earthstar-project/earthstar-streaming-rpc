@@ -1,13 +1,13 @@
-import { Fn, IConnection, ITransport, ITransportOpts, Thunk } from './types.ts';
+import { Fn, IConnection, ITransport, ITransportOpts, Thunk, TransportStatus } from './types.ts';
 import { Envelope } from './types-envelope.ts';
+import { Watchable } from './watchable.ts';
 import { setImmediate2, sleep } from './util.ts';
 import { Connection } from './connection.ts';
 
 import { logTransport as log } from './log.ts';
 
 export class TransportHttpClient implements ITransport {
-    isClosed = false;
-    _closeCbs: Set<Thunk> = new Set();
+    status: Watchable<TransportStatus> = new Watchable('OPEN' as TransportStatus);
     deviceId: string;
     methods: { [methodName: string]: Fn };
     connections: IConnection[] = [];
@@ -18,17 +18,19 @@ export class TransportHttpClient implements ITransport {
         this.methods = opts.methods;
     }
 
+    get isClosed() {
+        return this.status.value === 'CLOSED';
+    }
     onClose(cb: Thunk): Thunk {
-        this._closeCbs.add(cb);
-        return () => this._closeCbs.delete(cb);
+        return this.status.onChangeTo('CLOSED', cb);
     }
 
     close(): void {
         if (this.isClosed) return;
+
         log('closing...');
-        this.isClosed = true;
-        for (const cb of this._closeCbs) cb();
-        this._closeCbs = new Set();
+        this.status.set('CLOSED');
+
         log('...closing connections...');
         for (const conn of this.connections) {
             conn.close();
