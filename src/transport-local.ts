@@ -76,10 +76,11 @@ export class TransportLocal implements ITransport {
                 await thisConn.handleIncomingEnvelope(env);
             },
         });
+
+        // close one side of the connection, the other side closes
         thisConn.onClose(() => otherConn.close());
         otherConn.onClose(() => thisConn.close());
-        thisConn.onClose(() => this.close());
-        otherConn.onClose(() => otherTrans.close());
+
         this.connections.push(thisConn);
         otherTrans.connections.push(otherConn);
         return { thisConn, otherConn };

@@ -57,12 +57,15 @@ Deno.test('constructors', async () => {
     assert(!connAtoB.isClosed, 'connAtoB is not closed yet');
     assert(!connBtoA.isClosed, 'connBtoA is not closed yet');
 
-    transA.close();
-
-    assert(transA.isClosed, 'transA is closed');
+    // close one side of the connection, the other side closes, but not the transport
+    connAtoB.close();
+    assert(!transA.isClosed, 'transA is not closed yet');
+    assert(!transB.isClosed, 'transB is not closed yet');
     assert(connAtoB.isClosed, 'connAtoB is closed');
-    // closure takes a while to propagate because we're using streams
-    await sleep(100);
-    assert(transB.isClosed, 'transB is closed');
     assert(connBtoA.isClosed, 'connBtoA is closed');
+
+    transA.close();
+    transB.close();
+    assert(transA.isClosed, 'transA is closed');
+    assert(transB.isClosed, 'transB is closed');
 });
