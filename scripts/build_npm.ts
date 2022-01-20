@@ -6,20 +6,20 @@ await build({
     entryPoints: ['./mod.ts', './example.ts'],
     outDir: './npm',
     shims: {
-        deno: {
-            test: 'dev',
-        },
+        deno: true,
         weakRef: true,
-        custom: [{
-            package: {
-                name: 'cross-fetch',
-                version: '~3.1.4',
+        custom: [
+            {
+                package: {
+                    name: 'cross-fetch',
+                    version: '~3.1.4',
+                },
+                globalNames: [{
+                    name: 'fetch',
+                    exportName: 'default',
+                }],
             },
-            globalNames: [{
-                name: 'fetch',
-                exportName: 'default',
-            }],
-        }],
+        ],
     },
     compilerOptions: {
         // This is for Node v14 support

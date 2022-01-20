@@ -96,7 +96,11 @@ export class Connection implements IConnection {
             }
             if ('data' in env) deferred.resolve(env.data);
             else if ('error' in env) deferred.reject(new Error(env.error));
-            else console.warn('RESPONSE has neither data nor error.  this should never happen');
+            else {
+                console.warn(
+                    'RESPONSE has neither data nor error.  this should never happen',
+                );
+            }
             // Clean up.
             // TODO: eventually clean up orphaned old deferreds that were never answered
             this._deferredRequests.delete(env.envelopeId);

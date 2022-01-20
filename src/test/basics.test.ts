@@ -10,7 +10,9 @@ Deno.test('constructors', async () => {
     const methods = {
         shout: (s: string) => e.observe('shouted ' + s.toLocaleUpperCase()),
     };
-    const { streamAtoB, streamBtoA, transA, transB } = makeLocalTransportPair(methods);
+    const { streamAtoB, streamBtoA, transA, transB } = makeLocalTransportPair(
+        methods,
+    );
     const connAtoB = transA.connections[0];
     const connBtoA = transB.connections[0];
 

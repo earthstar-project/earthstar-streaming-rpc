@@ -32,7 +32,9 @@ export class TransportExposedStreams implements ITransport {
     outStream: ExposedReadableStream;
 
     constructor(opts: ITransportWebStreamOpts) {
-        log(`TransportExposedStreams constructor: ${opts.deviceId} "${opts.description}"`);
+        log(
+            `TransportExposedStreams constructor: ${opts.deviceId} "${opts.description}"`,
+        );
         this.deviceId = opts.deviceId;
         this.methods = opts.methods;
         this.description = `transport ${opts.description}`;
@@ -44,13 +46,18 @@ export class TransportExposedStreams implements ITransport {
                 transport: this,
                 deviceId: this.deviceId,
                 methods: this.methods,
-                sendEnvelope: async (conn: IConnection, env: Envelope): Promise<void> => {
+                sendEnvelope: async (
+                    conn: IConnection,
+                    env: Envelope,
+                ): Promise<void> => {
                     log(`${this.deviceId} | sending envelope to outStream:`, env);
                     try {
                         await this.outStream.controller.enqueue(env);
                     } catch (error) {
                         log(error);
-                        log(`${this.deviceId} | cannot send to outStream, it must be closed.  closing the Transport.`);
+                        log(
+                            `${this.deviceId} | cannot send to outStream, it must be closed.  closing the Transport.`,
+                        );
                         this.close();
                     }
                 },
@@ -62,20 +69,30 @@ export class TransportExposedStreams implements ITransport {
             while (true) {
                 let { value, done } = await reader.read();
                 if (this.isClosed) {
-                    log(`${this.deviceId} | transport is closed; ending the read thread.`);
+                    log(
+                        `${this.deviceId} | transport is closed; ending the read thread.`,
+                    );
                 }
                 if (done) {
-                    log(`${this.deviceId} | inStream was closed.  closing the Transport.`);
+                    log(
+                        `${this.deviceId} | inStream was closed.  closing the Transport.`,
+                    );
                     this.close();
                     return;
                 }
                 log(`${this.deviceId} | incoming envelope:`, value);
-                log(`${this.deviceId} | ...incoming envelope, passing it to the Connection to handle...`);
+                log(
+                    `${this.deviceId} | ...incoming envelope, passing it to the Connection to handle...`,
+                );
 
                 await this.connections[0].handleIncomingEnvelope(value);
-                log(`${this.deviceId} | ...incoming envelope: Connection is done handling it.`);
+                log(
+                    `${this.deviceId} | ...incoming envelope: Connection is done handling it.`,
+                );
                 if (this.isClosed) {
-                    log(`${this.deviceId} | transport is closed; ending the read thread.`);
+                    log(
+                        `${this.deviceId} | transport is closed; ending the read thread.`,
+                    );
                 }
             }
         });

@@ -7,9 +7,13 @@ export let logMain = (...args: any[]) => {
 };
 
 export let logConnection = (...args: any[]) => {
-    if (showLogs) console.log('  ' + crayon.bgMagenta.black(' connection '), ...args);
+    if (showLogs) {
+        console.log('  ' + crayon.bgMagenta.black(' connection '), ...args);
+    }
 };
 
 export let logTransport = (...args: any[]) => {
-    if (showLogs) console.log('    ' + crayon.bgCyan.black(' transport '), ...args);
+    if (showLogs) {
+        console.log('    ' + crayon.bgCyan.black(' transport '), ...args);
+    }
 };

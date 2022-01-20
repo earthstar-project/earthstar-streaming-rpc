@@ -31,7 +31,9 @@ export interface ExposedReadableStream {
     stream: ReadableStream;
     controller: ReadableStreamDefaultController;
 }
-export const makeExposedStream = (source: UnderlyingSource = {}): ExposedReadableStream => {
+export const makeExposedStream = (
+    source: UnderlyingSource = {},
+): ExposedReadableStream => {
     let exposedController;
     let newSource: any = {
         start: (controller: ReadableStreamDefaultController) => {

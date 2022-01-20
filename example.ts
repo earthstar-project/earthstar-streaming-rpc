@@ -19,7 +19,9 @@ const main = async () => {
     log('----------------------------------------');
 
     log('making local pair of transports');
-    const { streamAtoB, streamBtoA, transA, transB } = makeLocalTransportPair(methods);
+    const { streamAtoB, streamBtoA, transA, transB } = makeLocalTransportPair(
+        methods,
+    );
     const connAtoB = transA.connections[0];
     const connBtoA = transB.connections[0];
     //await sleep(10);
