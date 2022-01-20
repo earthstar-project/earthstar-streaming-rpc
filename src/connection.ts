@@ -58,20 +58,20 @@ export class Connection implements IConnection {
         if (env.kind === 'NOTIFY') {
             if (!Object.prototype.hasOwnProperty.call(this._methods, env.method)) {
                 //error - unknown method -- do nothing because this is a notify
-                //console.warn(`unknown method in NOTIFY: ${env.method}`);
+                //console.warn(`> unknown method in NOTIFY: ${env.method}`);
             } else {
                 try {
                     await this._methods[env.method](...env.args);
                 } catch (error) {
                     // silently swallow the error - in notify mode there's no place for there
                     // error to emerge
-                    //console.warn(`error when running NOTIFY method:`, env, error);
+                    //console.warn(`> error when running NOTIFY method:`, env, error);
                 }
             }
         } else if (env.kind === 'REQUEST') {
             try {
                 if (!Object.prototype.hasOwnProperty.call(this._methods, env.method)) {
-                    //console.warn(`unknown method in REQUEST: ${env.method}`);
+                    //console.warn(`> unknown method in REQUEST: ${env.method}`);
                     throw new Error(`unknown method in REQUEST: ${env.method}`);
                 }
                 const data = await this._methods[env.method](...env.args);
@@ -96,7 +96,7 @@ export class Connection implements IConnection {
             const deferred = this._deferredRequests.get(env.envelopeId);
             if (deferred === undefined) {
                 //console.warn(
-                //    `got a RESPONSE with an envelopeId we did not expect: ${env.envelopeId}`,
+                //    `> got a RESPONSE with an envelopeId we did not expect: ${env.envelopeId}`,
                 //);
                 return;
             }
@@ -104,7 +104,7 @@ export class Connection implements IConnection {
             else if ('error' in env) deferred.reject(new Error(env.error));
             else {
                 //console.warn(
-                //    'RESPONSE has neither data nor error.  this should never happen',
+                //    '> RESPONSE has neither data nor error.  this should never happen',
                 //);
             }
             // Clean up.

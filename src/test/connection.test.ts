@@ -7,7 +7,7 @@ import { EventLog } from './event-log.ts';
 
 //================================================================================
 
-let makeObservedMethods = (e: EventLog) => {
+const makeObservedMethods = (e: EventLog) => {
     return {
         add: (a: number, b: number) => {
             e.observe(`$${a} + ${b} = ${a + b}`);
@@ -73,16 +73,16 @@ const testConnectionRequestResponse = async (
     e: EventLog,
 ) => {
     await t.step('request-response', async () => {
-        let three = await conn.request('add', 1, 2);
+        const three = await conn.request('add', 1, 2);
         assertEquals(three, 3, 'conn.request returns correct answer');
-        let threeAsync = await conn.request('addAsync', 1, 2);
+        const threeAsync = await conn.request('addAsync', 1, 2);
         assertEquals(threeAsync, 3, 'conn.request returns correct answer');
     });
 
     await t.step('request-response with error', async () => {
         // error in the method call (no such method)
         try {
-            let three = await conn.request('nosuch');
+            const three = await conn.request('nosuch');
             assert(false, 'should catch error from unknown method call');
         } catch (error) {
             assert(true, 'should catch error from unknown method call');
@@ -90,7 +90,7 @@ const testConnectionRequestResponse = async (
 
         // error in the method
         try {
-            let three = await conn.request('alwaysError');
+            const three = await conn.request('alwaysError');
             assert(false, 'should catch error from method call');
         } catch (error) {
             assert(true, 'should catch error from method call');

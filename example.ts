@@ -1,7 +1,5 @@
-import { makeId, TransportHttpClient } from './mod.ts';
-import { sleep } from './src/util.ts';
+import { makeId, makeLocalTransportPair, sleep, TransportHttpClient } from './mod.ts';
 import { logMain as log } from './src/log.ts';
-import { makeLocalTransportPair } from './src/transport-local.ts';
 
 const main = async () => {
     log('----------------------------------------');
@@ -18,10 +16,37 @@ const main = async () => {
 
     log('----------------------------------------');
 
+    const trans = new TransportHttpClient({
+        deviceId: 'device:A',
+        methods: methods,
+    });
+    const conn = trans.addConnection('https://localhost:7777');
+
+    log('----------------------------------------');
+    log('request-response');
+
+    try {
+        const three = await conn.request('add', 1, 2);
+        log('response:', three);
+    } catch (error) {
+        log('eeeeeeeeeerror');
+    }
+
+    log('----------------------------------------');
+    log('closing');
+
+    trans.close();
+
+    log('----------------------------------------');
+
+    /*
     log('making local pair of transports');
-    const { thisConn: connAtoB, otherConn: connBtoA, transA, transB } = makeLocalTransportPair(
-        methods,
-    );
+    const {
+        thisConn: connAtoB,
+        otherConn: connBtoA,
+        transA,
+        transB,
+    } = makeLocalTransportPair(methods);
     //await sleep(10);
 
     log('----------------------------------------');
@@ -34,6 +59,7 @@ const main = async () => {
     //log('request');
     //const result = await connAtoB.request('add', 1, 2);
     //log('result =', result);
+    */
 
     /*
     log('calling methods on connections');
@@ -50,10 +76,12 @@ const main = async () => {
 
     log('----------------------------------------');
 
+    /*
     log('closing transports');
     // closing one will close the other one too (via its connection, via its streams)
     transA.close();
     //transB.close();
+    */
 
     log('----------------------------------------');
 
