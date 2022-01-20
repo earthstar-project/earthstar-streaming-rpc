@@ -1,4 +1,5 @@
 import { assert, assertEquals } from './asserts.ts';
+import { IConnection } from '../types.ts';
 //import { makeLocalTransportPair, TransportExposedStreams } from '../transport-exposed-streams.ts';
 import { makeLocalTransportPair } from '../transport-local.ts';
 
@@ -6,6 +7,9 @@ import { sleep } from '../util.ts';
 import { EventLog } from './event-log.ts';
 
 //================================================================================
+
+const testConnection = (conn: IConnection) => {
+};
 
 Deno.test('basics', async () => {
     const e = new EventLog();
