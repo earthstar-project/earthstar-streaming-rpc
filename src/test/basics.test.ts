@@ -1,5 +1,6 @@
 import { assert, assertEquals } from './asserts.ts';
-import { makeLocalTransportPair, TransportExposedStreams } from '../transport-exposed-streams.ts';
+//import { makeLocalTransportPair, TransportExposedStreams } from '../transport-exposed-streams.ts';
+import { makeLocalTransportPair, TransportLocal } from '../transport-local.ts';
 
 import { sleep } from '../util.ts';
 import { EventLog } from './event-log.ts';
@@ -18,9 +19,12 @@ Deno.test('constructors', async () => {
             throw new Error(msg);
         },
     };
-    const { streamAtoB, streamBtoA, transA, transB } = makeLocalTransportPair(methods);
-    const connAtoB = transA.connections[0];
-    const connBtoA = transB.connections[0];
+    const {
+        transA,
+        transB,
+        thisConn: connAtoB,
+        otherConn: connBtoA,
+    } = makeLocalTransportPair(methods);
 
     //----------------------------------------
     // notify
