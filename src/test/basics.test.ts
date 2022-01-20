@@ -36,6 +36,15 @@ Deno.test('constructors', async () => {
     e.expect('shoutAsync: HELLO WORLD');
     e.note('...done with notify async');
 
+    // when notify's method has an error, it should be swallowed and not returned to us
+    // because notify is not supposed to return anything
+    try {
+        await connAtoB.notify('alwaysError');
+        assert(true, 'notify should not return errors');
+    } catch (error) {
+        assert(false, 'notify should not return errors');
+    }
+
     //----------------------------------------
     // closing
 
@@ -48,7 +57,7 @@ Deno.test('constructors', async () => {
 
     assert(transA.isClosed, 'transA is closed');
     assert(connAtoB.isClosed, 'connAtoB is closed');
-    // closure takes a tick to propagate because we're using streams
+    // closure takes a while to propagate because we're using streams
     await sleep(100);
     assert(transB.isClosed, 'transB is closed');
     assert(connBtoA.isClosed, 'connBtoA is closed');

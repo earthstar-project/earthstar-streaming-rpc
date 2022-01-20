@@ -60,7 +60,11 @@ export class Connection implements IConnection {
                 //error - unknown method -- do nothing because this is a notify
                 console.warn(`unknown method in NOTIFY: ${env.method}`);
             } else {
-                await this._methods[env.method](...env.args);
+                try {
+                    await this._methods[env.method](...env.args);
+                } catch (error) {
+                    console.warn(`error when running NOTIFY method:`, env, error);
+                }
             }
         } else if (env.kind === 'REQUEST') {
             try {
