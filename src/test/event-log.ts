@@ -14,7 +14,7 @@ export class EventLog {
         this.expected.push(x);
         this.observed.push(x);
     }
-    assert(s: string = 'eventLog matches') {
+    assertEventsMatch(s: string = 'eventLog matches') {
         if (!deepEqual(this.observed, this.expected)) {
             console.log('event log does not match:');
             console.log('observed:', this.observed);

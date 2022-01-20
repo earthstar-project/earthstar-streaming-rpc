@@ -7,8 +7,14 @@ import { EventLog } from './event-log.ts';
 
 //================================================================================
 
-Deno.test('constructors', async () => {
+Deno.test('basics', async () => {
+    const e = new EventLog();
     const methods = {
+        add: (a: number, b: number) => a + b,
+        addAsync: async (a: number, b: number) => {
+            await sleep(10);
+            return a + b;
+        },
         shout: (s: string) => e.observe('shout: ' + s.toLocaleUpperCase()),
         shoutAsync: async (s: string) => {
             await sleep(10);
@@ -27,9 +33,8 @@ Deno.test('constructors', async () => {
     } = makeLocalTransportPair(methods);
 
     //----------------------------------------
-    // notify
+    // NOTIFY
 
-    const e = new EventLog();
     e.note('notify...');
     await connAtoB.notify('shout', 'hello world');
     e.expect('shout: HELLO WORLD');
@@ -40,8 +45,9 @@ Deno.test('constructors', async () => {
     e.expect('shoutAsync: HELLO WORLD');
     e.note('...done with notify async');
 
-    // when notify's method has an error, it should be swallowed and not returned to us
-    // because notify is not supposed to return anything
+    // When notify's method has an error, it should be swallowed and not returned to us
+    // because notify is not supposed to return anything.
+    // This will show as a console.warn but that's expected.
     try {
         await connAtoB.notify('alwaysError');
         assert(true, 'notify should not return errors');
@@ -50,7 +56,21 @@ Deno.test('constructors', async () => {
     }
 
     //----------------------------------------
-    // closing
+    // REQUEST-RESPONSE
+
+    e.note('request-response...');
+    const three = await connAtoB.request('add', 1, 2);
+    assertEquals(three, 3, 'request-response returned the correct answer');
+    e.note('...done with request-response');
+
+    e.note('request-response async...');
+    const three2 = await connAtoB.request('addAsync', 1, 2);
+    assertEquals(three, 3, 'request-response async returned the correct answer');
+    e.note('...done with request-response async');
+    e.assertEventsMatch();
+
+    //----------------------------------------
+    // CLOSE
 
     assert(!transA.isClosed, 'transA is not closed yet');
     assert(!transB.isClosed, 'transB is not closed yet');
