@@ -7,7 +7,7 @@ example:
 	VERBOSE=true deno run -A example.ts
 
 example-npm:
-	node npm/esm/example.js
+	VERBOSE=true node npm/esm/example.js
 
 lint:
 	deno lint --rules-exclude=no-explicit-any,no-unused-vars,no-empty,no-inferrable-types *.ts scripts src
