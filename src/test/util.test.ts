@@ -1,4 +1,4 @@
-import { assert, assertEquals } from './asserts.ts';
+import { assert } from './asserts.ts';
 import { makeId, randInt } from '../util.ts';
 
 //================================================================================

@@ -1,5 +1,4 @@
-import { Fn, IConnection, ITransport, ITransportOpts, Thunk } from './types.ts';
-import { ExposedReadableStream, makeExposedStream, setImmediate2 } from './util.ts';
+import { Fn, IConnection, ITransport, Thunk } from './types.ts';
 import { Envelope } from './types-envelope.ts';
 import { Connection } from './connection.ts';
 
@@ -56,7 +55,9 @@ export class TransportLocal implements ITransport {
     }
 
     addConnection(otherTrans: TransportLocal) {
+        // deno-lint-ignore prefer-const
         let thisConn: Connection;
+        // deno-lint-ignore prefer-const
         let otherConn: Connection;
         thisConn = new Connection({
             description: `conn ${this.deviceId} to ${otherTrans.deviceId}`,
@@ -87,7 +88,7 @@ export class TransportLocal implements ITransport {
     }
 }
 
-export let makeLocalTransportPair = (methods: { [methodName: string]: Fn }) => {
+export const makeLocalTransportPair = (methods: { [methodName: string]: Fn }) => {
     const transA = new TransportLocal({
         deviceId: 'device:A',
         methods,

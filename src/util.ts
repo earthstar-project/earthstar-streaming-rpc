@@ -35,7 +35,7 @@ export const makeExposedStream = (
     source: UnderlyingSource = {},
 ): ExposedReadableStream => {
     let exposedController;
-    let newSource: any = {
+    const newSource: any = {
         start: (controller: ReadableStreamDefaultController) => {
             exposedController = controller;
             if (source.start) source.start(controller);

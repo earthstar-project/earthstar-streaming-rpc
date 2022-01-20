@@ -1,6 +1,6 @@
 import { assert, assertEquals } from './asserts.ts';
 //import { makeLocalTransportPair, TransportExposedStreams } from '../transport-exposed-streams.ts';
-import { makeLocalTransportPair, TransportLocal } from '../transport-local.ts';
+import { makeLocalTransportPair } from '../transport-local.ts';
 
 import { sleep } from '../util.ts';
 import { EventLog } from './event-log.ts';

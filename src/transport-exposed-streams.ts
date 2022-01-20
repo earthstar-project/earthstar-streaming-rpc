@@ -1,4 +1,4 @@
-import { Fn, IConnection, ITransport, ITransportOpts, Thunk } from './types.ts';
+import { Fn, IConnection, ITransport, Thunk } from './types.ts';
 import { ExposedReadableStream, makeExposedStream, setImmediate2 } from './util.ts';
 import { Envelope } from './types-envelope.ts';
 import { Connection } from './connection.ts';
@@ -67,7 +67,7 @@ export class TransportExposedStreams implements ITransport {
             log(`${this.deviceId} | starting read thread`);
             const reader = this.inStream.stream.getReader();
             while (true) {
-                let { value, done } = await reader.read();
+                const { value, done } = await reader.read();
                 if (this.isClosed) {
                     log(
                         `${this.deviceId} | transport is closed; ending the read thread.`,
@@ -128,7 +128,7 @@ export class TransportExposedStreams implements ITransport {
     }
 }
 
-export let makeLocalTransportPair = (methods: { [methodName: string]: Fn }) => {
+export const makeLocalExposedStreamPair = (methods: { [methodName: string]: Fn }) => {
     const streamAtoB = makeExposedStream();
     const streamBtoA = makeExposedStream();
     const transA = new TransportExposedStreams({
