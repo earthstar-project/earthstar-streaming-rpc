@@ -19,6 +19,15 @@ await build({
                     exportName: 'default',
                 }],
             },
+            {
+                package: {
+                    name: 'web-streams-polyfill',
+                    version: '~3.2.0',
+                },
+                globalNames: [{
+                    name: 'ReadableStream',
+                }],
+            },
         ],
     },
     compilerOptions: {
