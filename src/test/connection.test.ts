@@ -1,6 +1,5 @@
 import { assert, assertEquals } from './asserts.ts';
 import { IConnection, ITransport } from '../types.ts';
-//import { makeLocalTransportPair, TransportExposedStreams } from '../transport-exposed-streams.ts';
 import { makeLocalTransportPair } from '../transport-local.ts';
 
 import { sleep } from '../util.ts';
@@ -126,7 +125,7 @@ const testClosingConnection = async (
     });
 };
 
-Deno.test('connection behaviour', async (t) => {
+Deno.test('connection behaviour: TransportLocal', async (t) => {
     //----------------------------------------
     // set the stage
 
