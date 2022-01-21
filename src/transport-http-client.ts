@@ -56,7 +56,7 @@ export class TransportHttpClient implements ITransport {
                 log('send...');
                 try {
                     conn.status.set('CONNECTING');
-                    let urlToPost = url + `from/${this.deviceId}`;
+                    const urlToPost = url + `from/${this.deviceId}`;
                     log(`send... POSTing to ${urlToPost}`);
                     const res = await fetch(urlToPost, {
                         method: 'POST',
@@ -96,7 +96,7 @@ export class TransportHttpClient implements ITransport {
                 try {
                     // fetch (with lots of checks for closure happening during a fetch)
                     if (this.isClosed) return;
-                    let urlToGet = url + `for/${this.deviceId}`;
+                    const urlToGet = url + `for/${this.deviceId}`;
                     const response = await fetch(urlToGet);
                     if (this.isClosed) return;
                     if (!response.ok) throw new Error();

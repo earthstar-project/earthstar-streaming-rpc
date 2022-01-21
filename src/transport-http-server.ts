@@ -61,13 +61,13 @@ export class TransportHttpServer implements ITransport {
 
         // outgoing
         this._app.get(this._path + 'for/:otherDeviceId', (req, res) => {
-            let otherDeviceId = req.params.otherDeviceId;
+            const otherDeviceId = req.params.otherDeviceId;
             log('GET: (outgoing) for device', otherDeviceId);
             if (this.isClosed) res.sendStatus(404);
 
-            let conn = this._addOrGetConnection(otherDeviceId);
+            const conn = this._addOrGetConnection(otherDeviceId);
 
-            let envsToSend = this._outgoingBuffer.get(otherDeviceId) ?? [];
+            const envsToSend = this._outgoingBuffer.get(otherDeviceId) ?? [];
             log(`GET: sending ${envsToSend.length} envelopes`);
             this._outgoingBuffer.set(otherDeviceId, []);
             res.json(envsToSend);
@@ -76,17 +76,17 @@ export class TransportHttpServer implements ITransport {
 
         // incoming
         this._app.post(this._path + 'from/:otherDeviceId', async (req, res) => {
-            let otherDeviceId = req.params.otherDeviceId;
+            const otherDeviceId = req.params.otherDeviceId;
             log('POST: (incoming) from device', otherDeviceId);
             if (this.isClosed) res.sendStatus(404);
 
-            let conn = this._addOrGetConnection(otherDeviceId);
+            const conn = this._addOrGetConnection(otherDeviceId);
 
             try {
-                let envs = req.body as Envelope[];
+                const envs = req.body as Envelope[];
                 if (!envs || !Array.isArray(envs)) res.sendStatus(400);
                 log(`POST: received ${envs.length} envelopes; handling them with the Connection...`);
-                for (let env of envs) {
+                for (const env of envs) {
                     await conn.handleIncomingEnvelope(env);
                 }
                 res.sendStatus(200);
@@ -99,21 +99,21 @@ export class TransportHttpServer implements ITransport {
     }
 
     _addOrGetConnection(otherDeviceId: string): IConnection {
-        for (let conn of this.connections) {
+        for (const conn of this.connections) {
             if (conn._otherDeviceId === otherDeviceId) {
                 log('Connection exists already');
                 return conn;
             }
         }
         log('Connection does not exist already.  Making a new one.');
-        let conn = new Connection({
+        const conn = new Connection({
             description: `connection to ${otherDeviceId}`,
             transport: this,
             deviceId: this.deviceId,
             methods: this.methods,
             sendEnvelope: async (conn, env) => {
                 log('conn.sendEnvelope: adding to outgoing buffer');
-                let buffer = this._outgoingBuffer.get(otherDeviceId) ?? [];
+                const buffer = this._outgoingBuffer.get(otherDeviceId) ?? [];
                 buffer.push(env);
                 this._outgoingBuffer.set(otherDeviceId, buffer);
             },

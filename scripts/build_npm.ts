@@ -30,6 +30,13 @@ await build({
             },
         ],
     },
+    mappings: {
+        // replace opine with express
+        'https://deno.land/x/opine@2.1.1/mod.ts': {
+            name: 'express',
+            version: '~4.17.2',
+        },
+    },
     compilerOptions: {
         // This is for Node v14 support
         target: 'ES2020',

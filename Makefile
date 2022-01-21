@@ -10,7 +10,7 @@ example-npm:
 	VERBOSE=true node npm/esm/example.js
 
 lint:
-	deno lint --rules-exclude=no-explicit-any,no-unused-vars,no-empty,no-inferrable-types *.ts scripts src
+	deno lint --rules-exclude=no-explicit-any,no-unused-vars,no-empty,no-inferrable-types,require-await *.ts scripts src
 
 test:
 	deno test -A --no-check=remote --unstable src

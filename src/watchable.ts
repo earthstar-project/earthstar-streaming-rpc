@@ -14,15 +14,15 @@ export class Watchable<T> {
         return this.value;
     }
     set(newVal: T) {
-        let oldVal = this.value;
+        const oldVal = this.value;
         this.value = newVal;
         if (oldVal !== this.value) {
-            for (let cb of this._cbs) {
+            for (const cb of this._cbs) {
                 cb(oldVal, this.value);
             }
-            let cbsByTarget = this._cbsByTarget.get(newVal);
+            const cbsByTarget = this._cbsByTarget.get(newVal);
             if (cbsByTarget) {
-                for (let cb of cbsByTarget) {
+                for (const cb of cbsByTarget) {
                     cb(oldVal, newVal);
                 }
             }
@@ -34,7 +34,7 @@ export class Watchable<T> {
     }
     onChangeTo(target: any, cb: Cb<T>): Thunk {
         // this uses strict equality
-        let cbsByTarget = this._cbsByTarget.get(target) ?? new Set<Cb<T>>();
+        const cbsByTarget = this._cbsByTarget.get(target) ?? new Set<Cb<T>>();
         cbsByTarget.add(cb);
         this._cbsByTarget.set(target, cbsByTarget);
         return () => {

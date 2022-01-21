@@ -24,12 +24,12 @@ const main = async () => {
 
     log('----------------------------------------');
 
-    let app = opine();
+    const app = opine();
     app.use(opineJson());
 
-    let PORT = 8008;
-    let PATH = '/earthstar-api/v2/';
-    let server = app.listen(PORT, () => {
+    const PORT = 8008;
+    const PATH = '/earthstar-api/v2/';
+    const server = app.listen(PORT, () => {
         log(`server started at http://localhost:${PORT}${PATH}`);
     });
     const transServer = new TransportHttpServer({
