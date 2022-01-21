@@ -1,5 +1,13 @@
-import { makeId, makeLocalTransportPair, sleep, TransportHttpClient } from './mod.ts';
+import {
+    makeId,
+    makeLocalTransportPair,
+    sleep,
+    TransportHttpClient,
+    TransportHttpServer,
+} from './mod.ts';
 import { logMain as log } from './src/log.ts';
+
+import { opine, opineJson } from './deps.ts';
 
 const main = async () => {
     log('----------------------------------------');
@@ -16,26 +24,66 @@ const main = async () => {
 
     log('----------------------------------------');
 
-    const trans = new TransportHttpClient({
-        deviceId: 'device:A',
-        methods: methods,
+    let app = opine();
+    app.use(opineJson());
+
+    let PORT = 8008;
+    let PATH = '/earthstar-api/v2/';
+    let server = app.listen(PORT, () => {
+        log(`server started at http://localhost:${PORT}${PATH}`);
     });
-    const conn = trans.addConnection('https://localhost:7777');
+    const transServer = new TransportHttpServer({
+        deviceId: 'device:server',
+        methods,
+        app,
+        path: PATH,
+    });
 
     log('----------------------------------------');
-    log('request-response');
+
+    const transClient = new TransportHttpClient({
+        deviceId: 'device:client1',
+        methods,
+    });
+    const connClientToServer = transClient.addConnection(`http://localhost:${PORT}${PATH}`);
+
+    await sleep(3500);
+
+    log('----------------------------------------');
+    log('request-response from client to server');
 
     try {
-        const three = await conn.request('add', 1, 2);
+        const three = await connClientToServer.request('add', 1, 2);
         log('response:', three);
     } catch (error) {
         log('eeeeeeeeeerror');
     }
 
-    log('----------------------------------------');
-    log('closing');
+    await sleep(3500);
 
-    trans.close();
+    log('----------------------------------------');
+    log('request-response from server to client');
+
+    try {
+        const connServerToClient = transServer.connections[0];
+        const thirty = await connServerToClient.request('add', 10, 20);
+        log('response:', thirty);
+    } catch (error) {
+        log('eeeeeeeeeerror');
+    }
+
+    await sleep(3500);
+
+    log('----------------------------------------');
+
+    log('closing client');
+    transClient.close();
+
+    log('closing server');
+    transServer.close();
+
+    log('closing express server');
+    server.close();
 
     log('----------------------------------------');
 
@@ -84,7 +132,5 @@ const main = async () => {
     */
 
     log('----------------------------------------');
-
-    await sleep(50);
 };
 main();

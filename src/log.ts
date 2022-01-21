@@ -17,3 +17,9 @@ export const logTransport = (...args: any[]) => {
         console.log('    ' + crayon.bgCyan.black(' transport '), ...args);
     }
 };
+
+export const logTransport2 = (...args: any[]) => {
+    if (showLogs) {
+        console.log('    ' + crayon.bgLightBlue.black(' transport '), ...args);
+    }
+};

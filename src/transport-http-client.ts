@@ -1,7 +1,7 @@
 import { Fn, IConnection, ITransport, ITransportOpts, Thunk, TransportStatus } from './types.ts';
 import { Envelope } from './types-envelope.ts';
 import { Watchable } from './watchable.ts';
-import { setImmediate2, sleep } from './util.ts';
+import { ensureEndsWith, setImmediate2, sleep } from './util.ts';
 import { Connection } from './connection.ts';
 
 import { logTransport as log } from './log.ts';
@@ -24,7 +24,6 @@ export class TransportHttpClient implements ITransport {
     onClose(cb: Thunk): Thunk {
         return this.status.onChangeTo('CLOSED', cb);
     }
-
     close(): void {
         if (this.isClosed) return;
 
@@ -39,6 +38,7 @@ export class TransportHttpClient implements ITransport {
     }
 
     addConnection(url: string): Connection {
+        url = ensureEndsWith(url, '/');
         log('addConnection to url:', url);
 
         const conn = new Connection({
@@ -56,23 +56,21 @@ export class TransportHttpClient implements ITransport {
                 log('send...');
                 try {
                     conn.status.set('CONNECTING');
-                    log('send... POSTing...');
-                    const res = await fetch(url, {
+                    let urlToPost = url + `from/${this.deviceId}`;
+                    log(`send... POSTing to ${urlToPost}`);
+                    const res = await fetch(urlToPost, {
                         method: 'POST',
                         headers: {
                             'Accept': 'application/json',
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify(env),
+                        body: JSON.stringify([env]), // a batch of one envelope
                     });
                     if (!res.ok) {
                         log('send... POST was not ok...');
-                        throw new Error(`a POST to ${url} resulted in http ${res.status}`);
+                        throw new Error(`a POST to ${urlToPost} resulted in http ${res.status}`);
                     } else {
-                        log('send... parsing JSON response...');
-                        const resJson = await res.json();
-                        if (conn.isClosed) throw new Error('the connection is closed');
-                        log('send... POST success.  got back:', resJson);
+                        log('send... success.');
                         conn.status.set('OPEN');
                     }
                 } catch (error) {
@@ -98,7 +96,8 @@ export class TransportHttpClient implements ITransport {
                 try {
                     // fetch (with lots of checks for closure happening during a fetch)
                     if (this.isClosed) return;
-                    const response = await fetch(url);
+                    let urlToGet = url + `for/${this.deviceId}`;
+                    const response = await fetch(urlToGet);
                     if (this.isClosed) return;
                     if (!response.ok) throw new Error();
                     const envs = await response.json();
@@ -108,6 +107,7 @@ export class TransportHttpClient implements ITransport {
 
                     // pass envelopes to the connection to handle one at a time
                     conn.status.set('OPEN');
+                    log(`got ${envs.length} envelopes`);
                     for (const env of envs) {
                         if (this.isClosed) return;
                         await conn.handleIncomingEnvelope(env);

@@ -1,3 +1,13 @@
+export const ensureEndsWith = (s: string, suffix: string) => {
+    if (s.endsWith(suffix)) return s;
+    return s + suffix;
+};
+
+export const ensureDoesNotEndWith = (s: string, suffix: string) => {
+    if (s.endsWith(suffix)) return s.slice(0, -1);
+    return s;
+};
+
 /**
  * A Deferred is a Promise and its resolve and reject methods.
  *

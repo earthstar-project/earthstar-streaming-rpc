@@ -13,11 +13,9 @@ export interface ITransportLocalOpts {
 }
 
 /**
- * A transport with a single connection, using an in/out pair of ExposedReadableStreams.
+ * A Transport that connects directly to other Transports in memory, on the same machine.
  *
  * This is mostly useful for testing.
- *
- * If either stream ends or is closed, the Transport will be closed (along with its only Connection).
  */
 export class TransportLocal implements ITransport {
     status: Watchable<TransportStatus> = new Watchable('OPEN' as TransportStatus);
@@ -27,7 +25,7 @@ export class TransportLocal implements ITransport {
     description: string;
 
     constructor(opts: ITransportLocalOpts) {
-        log(`TransportLocalOpts constructor: ${opts.deviceId} "${opts.description}"`);
+        log(`TransportLocal constructor: ${opts.deviceId} "${opts.description}"`);
         this.deviceId = opts.deviceId;
         this.methods = opts.methods;
         this.description = `transport ${opts.description}`;
@@ -39,7 +37,6 @@ export class TransportLocal implements ITransport {
     onClose(cb: Thunk): Thunk {
         return this.status.onChangeTo('CLOSED', cb);
     }
-
     close(): void {
         if (this.isClosed) return;
 

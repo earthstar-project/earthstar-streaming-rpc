@@ -4,7 +4,7 @@ clean:
 	rm -rf npm build .nyc_output coverage *.bundle.js cov.lcov coverage_html cov_profile node_modules
 
 example:
-	VERBOSE=true deno run -A example.ts
+	VERBOSE=true deno run --no-check=remote -A example.ts
 
 example-npm:
 	VERBOSE=true node npm/esm/example.js
@@ -13,13 +13,13 @@ lint:
 	deno lint --rules-exclude=no-explicit-any,no-unused-vars,no-empty,no-inferrable-types *.ts scripts src
 
 test:
-	deno test -A --unstable src
+	deno test -A --no-check=remote --unstable src
 
 test-watch:
-	deno test -A --unstable --watch src
+	deno test -A --no-check=remote --unstable --watch src
 
 test-coverage:
-	deno test --no-check --unstable --coverage=cov_profile src
+	deno test -A --no-check=remote --unstable --coverage=cov_profile src
 
 # to get "genhtml", run "sudo apt-get install lcov" (on linux) or "brew install lcov" (on mac)
 show-coverage:
@@ -28,7 +28,7 @@ show-coverage:
 coverage: test-coverage show-coverage
 
 npm:
-	deno run --allow-all scripts/build_npm.ts $(VERSION)
+	deno run -A scripts/build_npm.ts $(VERSION)
 
 fmt:
 	deno fmt --options-single-quote --options-indent-width=4 --options-line-width=100 src/ scripts/ example*.ts
