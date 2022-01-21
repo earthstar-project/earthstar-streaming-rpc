@@ -6,12 +6,13 @@ import {
     EnvelopeResponseWithData,
     EnvelopeResponseWithError,
 } from './types-envelope.ts';
+import { Watchable } from './watchable.ts';
 import { Deferred, makeDeferred, makeId } from './util.ts';
 
 import { logConnection as log } from './log.ts';
 
 export class Connection implements IConnection {
-    status: ConnectionStatus = 'CONNECTING';
+    status: Watchable<ConnectionStatus> = new Watchable('CONNECTING' as ConnectionStatus);
     _closeCbs: Set<Thunk> = new Set();
 
     description: string;
@@ -32,7 +33,7 @@ export class Connection implements IConnection {
     }
 
     get isClosed() {
-        return this.status === 'CLOSED';
+        return this.status.value === 'CLOSED';
     }
     onClose(cb: Thunk): Thunk {
         if (this.isClosed) throw new Error('the connection is closed');
@@ -42,7 +43,7 @@ export class Connection implements IConnection {
     close(): void {
         if (this.isClosed) return;
         log(`${this.description} | closing...`);
-        this.status = 'CLOSED';
+        this.status.set('CLOSED');
         for (const cb of this._closeCbs) cb();
         this._closeCbs = new Set();
         // remove from transport's list of connections

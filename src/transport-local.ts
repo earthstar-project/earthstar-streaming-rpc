@@ -54,7 +54,7 @@ export class TransportLocal implements ITransport {
     }
 
     addConnection(otherTrans: TransportLocal) {
-        if (this.isClosed) throw new Error("Can't use a transport after it's closed");
+        if (this.isClosed) throw new Error('Can\'t use a transport after it\'s closed');
         // deno-lint-ignore prefer-const
         let thisConn: Connection;
         // deno-lint-ignore prefer-const

@@ -20,7 +20,7 @@ export interface ITransportOpts {
  *
  * Creates Connections.
  */
-export type TransportStatus = 'OPEN' | 'CLOSED'
+export type TransportStatus = 'OPEN' | 'CLOSED';
 export interface ITransport {
     status: Watchable<TransportStatus>;
     isClosed: boolean;
@@ -66,7 +66,7 @@ export type ConnectionStatus =
  * Represents a one-to-one network connection.
  */
 export interface IConnection {
-    status: ConnectionStatus;
+    status: Watchable<ConnectionStatus>;
     _closeCbs: Set<Thunk>;
 
     description: string;

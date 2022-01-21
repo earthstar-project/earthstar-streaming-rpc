@@ -55,7 +55,7 @@ export class TransportHttpClient implements ITransport {
                 log(`connection "${conn.description}" is sending an envelope:`, env);
                 log('send...');
                 try {
-                    conn.status = 'CONNECTING';
+                    conn.status.set('CONNECTING');
                     log('send... POSTing...');
                     const res = await fetch(url, {
                         method: 'POST',
@@ -73,11 +73,11 @@ export class TransportHttpClient implements ITransport {
                         const resJson = await res.json();
                         if (conn.isClosed) throw new Error('the connection is closed');
                         log('send... POST success.  got back:', resJson);
-                        conn.status = 'OPEN';
+                        conn.status.set('OPEN');
                     }
                 } catch (error) {
                     log('send... error.');
-                    conn.status = 'ERROR';
+                    conn.status.set('ERROR');
                     console.warn('> sendEnvelope error:', error);
                 }
             },
@@ -85,8 +85,8 @@ export class TransportHttpClient implements ITransport {
 
         // times we should wait in different conditions
         const QUICK_POLL = 10; // got good data, try again right away
-        const SLOW_POLL = 1500; // got no data, slow down
-        const ERROR_POLL = 5000; // got an error, back off
+        const SLOW_POLL = 1000; // got no data, slow down
+        const ERROR_POLL = 3000; // got an error, back off
 
         // PULL
         // Poll for a batch (array) of new envs by HTTP GET and send them to conn.handleIncomingEnvelope
@@ -107,13 +107,13 @@ export class TransportHttpClient implements ITransport {
                     sleepTime = envs.length >= 1 ? QUICK_POLL : SLOW_POLL;
 
                     // pass envelopes to the connection to handle one at a time
-                    conn.status = 'OPEN';
+                    conn.status.set('OPEN');
                     for (const env of envs) {
                         if (this.isClosed) return;
                         await conn.handleIncomingEnvelope(env);
                     }
                 } catch (error) {
-                    conn.status = 'ERROR';
+                    conn.status.set('ERROR');
                     sleepTime = ERROR_POLL;
                     console.warn('> problem polling for envelopes:', error);
                 }
