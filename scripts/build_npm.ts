@@ -28,14 +28,28 @@ await build({
                     name: 'ReadableStream',
                 }],
             },
+            {
+                package: {
+                    name: 'express',
+                    version: '4.17.2',
+                },
+                typesPackage: {
+                    name: '@types/express',
+                    version: '4.17.13',
+                },
+                globalNames: [],
+            },
         ],
     },
     mappings: {
         // replace opine with express
         'https://deno.land/x/opine@2.1.1/mod.ts': {
             name: 'express',
-            version: '~4.17.2',
+            version: '4.17.2',
         },
+    },
+    redirects: {
+        './deps.ts': './deps.node.ts',
     },
     compilerOptions: {
         // This is for Node v14 support
