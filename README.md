@@ -11,7 +11,7 @@ to put everything together.
 
 ## Code structure
 
-Just the `src`:
+Just the important things:
 
 ![](depchart/depchart-simple.png)
 
