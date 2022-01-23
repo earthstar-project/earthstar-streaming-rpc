@@ -56,6 +56,7 @@ export class Connection implements IConnection {
     async handleIncomingEnvelope(env: Envelope): Promise<void> {
         // TODO: maybe this function should be in a lock to ensure it only runs one at a time
         if (this.isClosed) throw new Error('the connection is closed');
+        // TODO: throw error if status is ERROR ?
         log(`${this.description} | incoming envelope:`, env);
         if (env.kind === 'NOTIFY') {
             if (!Object.prototype.hasOwnProperty.call(this._methods, env.method)) {

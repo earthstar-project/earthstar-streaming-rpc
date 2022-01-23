@@ -66,6 +66,11 @@ export type ConnectionStatus =
  * Represents a one-to-one network connection.
  */
 export interface IConnection {
+
+    // TODO: actually connections need to track their incoming and outgoing
+    // statuses separately, and then exposed a combined status somehow?
+    // What if only one direction has an error?
+
     status: Watchable<ConnectionStatus>;
     _closeCbs: Set<Thunk>;
 
@@ -85,7 +90,13 @@ export interface IConnection {
 
     handleIncomingEnvelope(env: Envelope): Promise<void>;
 
+    // TODO: maybe this can be synchronous since
+    // we don't care about the result --
+    // does it wait until sent over the network, or just queued in a batch?
     notify(method: string, ...args: any[]): Promise<void>;
+
+    // Wait for the return value to come back
     request(method: string, ...args: any[]): Promise<any>;
+
     // TODO: stream
 }
