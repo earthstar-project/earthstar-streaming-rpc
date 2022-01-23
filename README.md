@@ -33,13 +33,13 @@ Earthstar ([github](https://github.com/earthstar-project),
 
 ### Importing
 
-To use in Deno:
+To use in Deno you can import directly from Github using a specific git tag as a version number:
 
 ```ts
 import {
     TransportHttpClient,
     TransportHttpServer,
-} from "https://TODO.com/earthstar-streaming-rpc/mod.ts";
+} from "https://raw.githubusercontent.com/earthstar-project/earthstar-streaming-rpc/1.0.0/mod.ts";
 ```
 
 To use with Node or apps built with NPM dependencies:
