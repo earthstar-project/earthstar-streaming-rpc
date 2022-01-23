@@ -1,10 +1,12 @@
 import { Fn, IConnection, ITransport, ITransportOpts, Thunk, TransportStatus } from './types.ts';
 import { Envelope } from './types-envelope.ts';
 import { Watchable } from './watchable.ts';
-import { ensureEndsWith, setImmediate2, sleep } from './util.ts';
+import { ensureEndsWith, setImmediate2, sleep, withTimeout } from './util.ts';
 import { Connection } from './connection.ts';
 
 import { logTransport as log } from './log.ts';
+
+const TIMEOUT = 1000; // TODO: make this configurable
 
 export class TransportHttpClient implements ITransport {
     status: Watchable<TransportStatus> = new Watchable('OPEN' as TransportStatus);
@@ -58,14 +60,17 @@ export class TransportHttpClient implements ITransport {
                     conn.status.set('CONNECTING');
                     const urlToPost = url + `from/${this.deviceId}`;
                     log(`send... POSTing to ${urlToPost}`);
-                    const res = await fetch(urlToPost, {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify([env]), // a batch of one envelope
-                    });
+                    const res = await withTimeout(
+                        TIMEOUT,
+                        fetch(urlToPost, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify([env]), // a batch of one envelope
+                        }),
+                    );
                     if (!res.ok) {
                         log('send... POST was not ok...');
                         throw new Error(`a POST to ${urlToPost} resulted in http ${res.status}`);
@@ -76,7 +81,8 @@ export class TransportHttpClient implements ITransport {
                 } catch (error) {
                     log('send... error.');
                     conn.status.set('ERROR');
-                    console.warn('> sendEnvelope error:', error);
+                    //console.warn('> sendEnvelope error:', error);
+                    throw error;
                 }
             },
         });
@@ -97,7 +103,7 @@ export class TransportHttpClient implements ITransport {
                     // fetch (with lots of checks for closure happening during a fetch)
                     if (this.isClosed) return;
                     const urlToGet = url + `for/${this.deviceId}`;
-                    const response = await fetch(urlToGet);
+                    const response = await withTimeout(TIMEOUT, fetch(urlToGet));
                     if (this.isClosed) return;
                     if (!response.ok) throw new Error();
                     const envs = await response.json();
@@ -118,7 +124,9 @@ export class TransportHttpClient implements ITransport {
                     console.warn('> problem polling for envelopes:', error);
                 }
                 if (this.isClosed) return;
+                log(`sleeping ${sleepTime} ms...`);
                 await sleep(sleepTime);
+                log('...done sleeping.');
                 if (this.isClosed) return;
             }
         });

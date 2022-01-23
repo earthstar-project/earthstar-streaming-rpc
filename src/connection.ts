@@ -22,6 +22,7 @@ export class Connection implements IConnection {
     _methods: { [methodName: string]: Fn };
     _sendEnvelope: (conn: IConnection, env: Envelope) => Promise<void>;
     _deferredRequests: Map<string, Deferred<any>> = new Map(); // keyed by env id
+    _lastSeen: number = 0;
 
     constructor(opts: ConnectionOpts) {
         log(`Connection constructor: ${opts.deviceId} "${opts.description}"`);

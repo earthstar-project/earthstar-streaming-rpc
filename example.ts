@@ -1,6 +1,5 @@
 import {
     makeId,
-    makeLocalTransportPair,
     sleep,
     TransportHttpClient,
     TransportHttpServer,
@@ -27,16 +26,16 @@ const main = async () => {
     const app = opine();
     app.use(opineJson());
 
-    const PORT = 8008;
-    const PATH = '/earthstar-api/v2/';
-    const server = app.listen(PORT, () => {
-        log(`server started at http://localhost:${PORT}${PATH}`);
+    const port = 8008;
+    const path = '/earthstar-api/v2/';
+    const server = app.listen(port, () => {
+        log(`server started at http://localhost:${port}${path}`);
     });
     const transServer = new TransportHttpServer({
         deviceId: 'device:server',
         methods,
         app,
-        path: PATH,
+        path: path,
     });
 
     log('----------------------------------------');
@@ -45,7 +44,7 @@ const main = async () => {
         deviceId: 'device:client1',
         methods,
     });
-    const connClientToServer = transClient.addConnection(`http://localhost:${PORT}${PATH}`);
+    const connClientToServer = transClient.addConnection(`http://localhost:${port}${path}`);
 
     await sleep(3500);
 

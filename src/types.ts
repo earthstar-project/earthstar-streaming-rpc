@@ -66,7 +66,6 @@ export type ConnectionStatus =
  * Represents a one-to-one network connection.
  */
 export interface IConnection {
-
     // TODO: actually connections need to track their incoming and outgoing
     // statuses separately, and then exposed a combined status somehow?
     // What if only one direction has an error?
@@ -79,6 +78,7 @@ export interface IConnection {
     _deviceId: string;
     _otherDeviceId: string | null; // null until we discover it
     _methods: { [methodName: string]: Fn };
+    _lastSeen: number;
 
     get isClosed(): boolean;
     onClose(cb: Thunk): Thunk;

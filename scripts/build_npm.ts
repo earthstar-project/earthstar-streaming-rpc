@@ -52,8 +52,9 @@ await build({
         './deps.ts': './deps.node.ts',
     },
     compilerOptions: {
-        // This is for Node v14 support
-        target: 'ES2020',
+        // ES2020 for Node v14 support
+        // ES2021 to get Promise.all
+        target: 'ES2021',
     },
     package: {
         // package.json properties
