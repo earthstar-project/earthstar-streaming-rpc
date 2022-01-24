@@ -39,7 +39,7 @@ To use in Deno you can import directly from Github using a specific git tag as a
 import {
     TransportHttpClient,
     TransportHttpServer,
-} from "https://raw.githubusercontent.com/earthstar-project/earthstar-streaming-rpc/1.0.0/mod.ts";
+} from "https://raw.githubusercontent.com/earthstar-project/earthstar-streaming-rpc/v1.0.1/mod.ts";
 ```
 
 To use with Node or apps built with NPM dependencies:
