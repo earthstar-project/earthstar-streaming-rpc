@@ -1,8 +1,10 @@
+import { RpcErrorTimeout } from './errors.ts';
+
 export const withTimeout = <T>(ms: number, prom: Promise<T>): Promise<T> => {
     let rejectAfterMs = new Promise((res, rej) => {
-        setTimeout(rej, ms);
+        setTimeout(() => rej(new RpcErrorTimeout()), ms);
     });
-    return Promise.any([rejectAfterMs, prom]) as Promise<T>;
+    return Promise.race([rejectAfterMs, prom]) as Promise<T>;
 };
 
 export const ensureEndsWith = (s: string, suffix: string) => {

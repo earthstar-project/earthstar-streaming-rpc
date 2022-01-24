@@ -168,17 +168,25 @@ transport.close();
 
 If there's a network problem:
 * `connection.status` will become `ERROR`
-* `connection.notify` and `connection.request` will throw errors
+* `connection.notify` and `connection.request` will throw errors, such as `RpcErrorTimeout` or `RpcErrorNetworkProblem` or a built-in error type related to the network
 * The Connection will try to reconnect and become `OPEN` again
+* The Transport will remain `OPEN` (TODO?)
 
-If your method call is malformed (wrong number of arguments, unknown method, etc):
-* `connection.notify` or `connection.request` will throw an error
+If you call a method name that does not exist on the other side:
+* `connection.notify` will do nothing
+* `connection.request` will throw a `RpcErrorUnknownMethod`
 
-If your method call crashes on the other side:
-* `connection.notify` or `connection.request` will throw an error
+If your method call crashes on the other side, because...
+* ...the method threw an error on purpose
+* ...the method crashed for some reason
+* ...the arguments you provided did not make sense (note that nothing checks if you provided the correct number of arguments, it just tries to run the method as you asked)
+
+then...
+* `connection.notify` will do nothing
+* `connection.request` will throw a `RpcErrorFromMethod` with a stringified version of the original error
 
 If you try to do anything with a Connection or Transport that is CLOSED:
-* an error will be thrown
+* a `RpcErrorUseAfterClose` error will be thrown
 
 ### Transport classes
 

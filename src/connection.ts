@@ -1,3 +1,9 @@
+import {
+    RpcError,
+    RpcErrorFromMethod,
+    RpcErrorUnknownMethod,
+    RpcErrorUseAfterClose,
+} from './errors.ts';
 import { ConnectionOpts, ConnectionStatus, Fn, IConnection, ITransport, Thunk } from './types.ts';
 import {
     Envelope,
@@ -37,7 +43,7 @@ export class Connection implements IConnection {
         return this.status.value === 'CLOSED';
     }
     onClose(cb: Thunk): Thunk {
-        if (this.isClosed) throw new Error('the connection is closed');
+        if (this.isClosed) throw new RpcErrorUseAfterClose('the connection is closed');
         this._closeCbs.add(cb);
         return () => this._closeCbs.delete(cb);
     }
@@ -56,27 +62,27 @@ export class Connection implements IConnection {
 
     async handleIncomingEnvelope(env: Envelope): Promise<void> {
         // TODO: maybe this function should be in a lock to ensure it only runs one at a time
-        if (this.isClosed) throw new Error('the connection is closed');
+        if (this.isClosed) throw new RpcErrorUseAfterClose('the connection is closed');
         // TODO: throw error if status is ERROR ?
         log(`${this.description} | incoming envelope:`, env);
         if (env.kind === 'NOTIFY') {
             if (!Object.prototype.hasOwnProperty.call(this._methods, env.method)) {
-                //error - unknown method -- do nothing because this is a notify
-                //console.warn(`> unknown method in NOTIFY: ${env.method}`);
+                // swallow the error - in notify mode there's no place for the error to emerge
+                //throw new RpcErrorUnknownMethod(`unknown method in NOTIFY: ${env.method}`);
+                console.warn(`> error in NOTIFY handler: no notify method called "${env.method}"`);
             } else {
                 try {
                     await this._methods[env.method](...env.args);
                 } catch (error) {
-                    // silently swallow the error - in notify mode there's no place for there
-                    // error to emerge
-                    //console.warn(`> error when running NOTIFY method:`, env, error);
+                    // the method had an error.
+                    // swallow the error - in notify mode there's no place for the error to emerge
+                    console.warn(`> error when running NOTIFY method:`, env, error);
                 }
             }
         } else if (env.kind === 'REQUEST') {
             try {
                 if (!Object.prototype.hasOwnProperty.call(this._methods, env.method)) {
-                    //console.warn(`> unknown method in REQUEST: ${env.method}`);
-                    throw new Error(`unknown method in REQUEST: ${env.method}`);
+                    throw new RpcErrorUnknownMethod(`unknown method in REQUEST: ${env.method}`);
                 }
                 const data = await this._methods[env.method](...env.args);
                 const responseEnvData: EnvelopeResponseWithData = {
@@ -104,12 +110,15 @@ export class Connection implements IConnection {
                 //);
                 return;
             }
-            if ('data' in env) deferred.resolve(env.data);
-            else if ('error' in env) deferred.reject(new Error(env.error));
-            else {
-                //console.warn(
-                //    '> RESPONSE has neither data nor error.  this should never happen',
-                //);
+            if ('data' in env) {
+                deferred.resolve(env.data);
+            } else if ('error' in env) {
+                deferred.reject(new RpcErrorFromMethod(env.error));
+            } else {
+                console.warn(
+                    '> RESPONSE has neither data nor error.  this should never happen',
+                );
+                deferred.reject(new RpcError('> RESPONSE had neither data nor error??'));
             }
             // Clean up.
             // TODO: eventually clean up orphaned old deferreds that were never answered
@@ -119,7 +128,7 @@ export class Connection implements IConnection {
     }
 
     async notify(method: string, ...args: any[]): Promise<void> {
-        if (this.isClosed) throw new Error('the connection is closed');
+        if (this.isClosed) throw new RpcErrorUseAfterClose('the connection is closed');
         const env: EnvelopeNotify = {
             kind: 'NOTIFY',
             fromDeviceId: this._deviceId,
@@ -132,7 +141,7 @@ export class Connection implements IConnection {
         log(`${this.description} | done sending NOTIFY.`);
     }
     async request(method: string, ...args: any[]): Promise<any> {
-        if (this.isClosed) throw new Error('the connection is closed');
+        if (this.isClosed) throw new RpcErrorUseAfterClose('the connection is closed');
         const env: EnvelopeRequest = {
             kind: 'REQUEST',
             fromDeviceId: this._deviceId,

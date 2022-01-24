@@ -1,3 +1,4 @@
+import { RpcError, RpcErrorNetworkProblem, RpcErrorUseAfterClose } from './errors.ts';
 import { Fn, IConnection, ITransport, ITransportOpts, Thunk, TransportStatus } from './types.ts';
 import { Envelope } from './types-envelope.ts';
 import { Watchable } from './watchable.ts';
@@ -53,7 +54,7 @@ export class TransportHttpClient implements ITransport {
                 // send envelope in its own HTTP POST.
                 // TODO: does this work right if it's called multiple times at once?
                 // probably conn.status ends up wrong.
-                if (conn.isClosed) throw new Error('the connection is closed');
+                if (conn.isClosed) throw new RpcErrorUseAfterClose('the connection is closed');
                 log(`connection "${conn.description}" is sending an envelope:`, env);
                 log('send...');
                 try {
@@ -73,7 +74,9 @@ export class TransportHttpClient implements ITransport {
                     );
                     if (!res.ok) {
                         log('send... POST was not ok...');
-                        throw new Error(`a POST to ${urlToPost} resulted in http ${res.status}`);
+                        throw new RpcErrorNetworkProblem(
+                            `a POST to ${urlToPost} resulted in http ${res.status}`,
+                        );
                     } else {
                         log('send... success.');
                         conn.status.set('OPEN');
@@ -82,6 +85,7 @@ export class TransportHttpClient implements ITransport {
                     log('send... error.');
                     conn.status.set('ERROR');
                     //console.warn('> sendEnvelope error:', error);
+                    // re-throw the error
                     throw error;
                 }
             },
@@ -105,9 +109,11 @@ export class TransportHttpClient implements ITransport {
                     const urlToGet = url + `for/${this.deviceId}`;
                     const response = await withTimeout(TIMEOUT, fetch(urlToGet));
                     if (this.isClosed) return;
-                    if (!response.ok) throw new Error();
+                    if (!response.ok) {
+                        throw new RpcErrorNetworkProblem('pull thread HTTP response was not ok');
+                    }
                     const envs = await response.json();
-                    if (!Array.isArray(envs)) throw new Error('expected an array');
+                    if (!Array.isArray(envs)) throw new RpcError('expected an array');
                     // poll slower when there's nothing there
                     sleepTime = envs.length >= 1 ? QUICK_POLL : SLOW_POLL;
 
@@ -122,6 +128,7 @@ export class TransportHttpClient implements ITransport {
                     conn.status.set('ERROR');
                     sleepTime = ERROR_POLL;
                     console.warn('> problem polling for envelopes:', error);
+                    // don't re-throw; swallow this error because there's nobody to catch it
                 }
                 if (this.isClosed) return;
                 log(`sleeping ${sleepTime} ms...`);

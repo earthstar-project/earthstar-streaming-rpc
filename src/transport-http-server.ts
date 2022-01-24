@@ -1,6 +1,6 @@
 import { Fn, IConnection, ITransport, Thunk, TransportStatus } from './types.ts';
 import { Envelope } from './types-envelope.ts';
-import { ensureEndsWith, withTimeout } from './util.ts';
+import { ensureEndsWith } from './util.ts';
 import { Watchable } from './watchable.ts';
 import { Connection } from './connection.ts';
 
@@ -85,13 +85,14 @@ export class TransportHttpServer implements ITransport {
                 if (!envs || !Array.isArray(envs)) res.sendStatus(400);
                 log(`POST: received ${envs.length} envelopes; handling them with the Connection...`);
                 for (const env of envs) {
+                    // TODO: fix: if this throws an error it will skip the rest of the envelopes
                     await conn.handleIncomingEnvelope(env);
                 }
                 res.sendStatus(200);
                 log('POST: done');
             } catch (error) {
                 log('server error:', error);
-                return;
+                console.warn('> error in server handler for incoming envelopes', error);
             }
         });
     }
