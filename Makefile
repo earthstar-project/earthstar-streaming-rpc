@@ -30,11 +30,12 @@ coverage: test-coverage show-coverage
 npm:
 	deno run -A scripts/build_npm.ts $(VERSION)
 
+# deno fmt --options-single-quote --options-indent-width=4 --options-line-width=100 src/ scripts/ examples/ mod.ts deps.ts deps.deno.ts
 fmt:
-	deno fmt --options-single-quote --options-indent-width=4 --options-line-width=100 src/ scripts/ examples/ mod.ts deps.ts deps.deno.ts
+	deno fmt
 
 depchart-simple:
-	mkdir -p depchart && npx depchart `find src | grep .ts` --exclude src/test/*.ts src/log.ts --rankdir LR -o depchart/depchart-simple --node_modules omit
+	mkdir -p depchart && npx depchart deps.ts `find src | grep .ts` --exclude src/test/*.ts src/log.ts --rankdir LR -o depchart/depchart-simple --node_modules omit
 
 depchart-full:
 	mkdir -p depchart && npx depchart examples/*.ts deps.ts mod.ts `find src | grep .ts` --rankdir LR -o depchart/depchart-full --node_modules integrated

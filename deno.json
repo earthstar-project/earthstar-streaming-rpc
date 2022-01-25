@@ -1,11 +1,12 @@
 {
     "fmt": {
         "files": {
-            "include": ["src/", "scripts/", "examples/", "mod.ts", "deps.ts", "deps.deno.ts"]
+            "exclude": ["npm/", ".github/", ".nova", ".git"]
         },
         "options": {
             "indentWidth": 4,
             "lineWidth": 100,
+            "proseWrap": "preserve",
             "singleQuote": true
         }
     }
