@@ -12,10 +12,21 @@ digraph G {
     
     // files in their folder clusters
         "deps.ts" [label="deps.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
-        "example.ts" [label="example.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
         "mod.ts" [label="mod.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
 
-        subgraph cluster82301750 {
+        subgraph cluster816164315 {
+            label=<<b>examples</b>>;
+            style="rounded,filled";
+            fillcolor=bisque;
+            color=bisque4;
+            penwidth=2;
+                    
+            "examples/example-http-client.ts" [label="example-http-client.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+            "examples/example-http-server.ts" [label="example-http-server.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+            "examples/example.ts" [label="example.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+        }
+
+        subgraph cluster8707387619 {
             label=<<b>src</b>>;
             style="rounded,filled";
             fillcolor=bisque;
@@ -23,6 +34,7 @@ digraph G {
             penwidth=2;
                     
             "src/connection.ts" [label="connection.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+            "src/errors.ts" [label="errors.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/log.ts" [label="log.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/transport-http-client.ts" [label="transport-http-client.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/transport-http-server.ts" [label="transport-http-server.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
@@ -32,7 +44,7 @@ digraph G {
             "src/util.ts" [label="util.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/watchable.ts" [label="watchable.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
     
-            subgraph cluster9969856700 {
+            subgraph cluster2588540949 {
                 label=<<b>test</b>>;
                 style="rounded,filled";
                 fillcolor=bisque;
@@ -52,16 +64,22 @@ digraph G {
         "https://deno.land/std@0.121.0/testing/asserts.ts" [shape=box3d, style=filled, fillcolor=cornsilk3, color=cornsilk4];
 
     // edges between files
-    "example.ts" -> "mod.ts" [penwidth=2; color=darkslategray4];
-    "example.ts" -> "src/log.ts" [penwidth=2; color=darkslategray4];
-    "example.ts" -> "deps.ts" [penwidth=2; color=darkslategray4];
-    "mod.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
-    "mod.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
+    "examples/example-http-client.ts" -> "mod.ts" [penwidth=2; color=darkslategray4];
+    "examples/example-http-server.ts" -> "mod.ts" [penwidth=2; color=darkslategray4];
+    "examples/example-http-server.ts" -> "deps.ts" [penwidth=2; color=darkslategray4];
+    "examples/example.ts" -> "mod.ts" [penwidth=2; color=darkslategray4];
+    "examples/example.ts" -> "src/log.ts" [penwidth=2; color=darkslategray4];
+    "examples/example.ts" -> "deps.ts" [penwidth=2; color=darkslategray4];
     "mod.ts" -> "src/connection.ts" [penwidth=2; color=darkslategray4];
+    "mod.ts" -> "src/errors.ts" [penwidth=2; color=darkslategray4];
     "mod.ts" -> "src/transport-http-client.ts" [penwidth=2; color=darkslategray4];
     "mod.ts" -> "src/transport-http-server.ts" [penwidth=2; color=darkslategray4];
     "mod.ts" -> "src/transport-local.ts" [penwidth=2; color=darkslategray4];
+    "mod.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
+    "mod.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
     "mod.ts" -> "src/util.ts" [penwidth=2; color=darkslategray4];
+    "mod.ts" -> "src/watchable.ts" [penwidth=2; color=darkslategray4];
+    "src/connection.ts" -> "src/errors.ts" [penwidth=2; color=darkslategray4];
     "src/connection.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
     "src/connection.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
     "src/connection.ts" -> "src/watchable.ts" [penwidth=2; color=darkslategray4];
@@ -76,6 +94,7 @@ digraph G {
     "src/test/event-log.ts" -> "src/test/asserts.ts" [penwidth=2; color=darkslategray4];
     "src/test/util.test.ts" -> "src/test/asserts.ts" [penwidth=2; color=darkslategray4];
     "src/test/util.test.ts" -> "src/util.ts" [penwidth=2; color=darkslategray4];
+    "src/transport-http-client.ts" -> "src/errors.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-client.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-client.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-client.ts" -> "src/watchable.ts" [penwidth=2; color=darkslategray4];
@@ -96,6 +115,7 @@ digraph G {
     "src/transport-local.ts" -> "src/log.ts" [penwidth=2; color=darkslategray4];
     "src/types.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
     "src/types.ts" -> "src/watchable.ts" [penwidth=2; color=darkslategray4];
+    "src/util.ts" -> "src/errors.ts" [penwidth=2; color=darkslategray4];
 
     // edges from files to packages
     "deps.ts" -> "https://deno.land/x/crayon@2.3.1/mod.ts" [penwidth=1.5; style=dashed, color=cornsilk4, weight=1];
