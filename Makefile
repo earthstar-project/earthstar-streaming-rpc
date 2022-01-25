@@ -4,10 +4,10 @@ clean:
 	rm -rf npm build .nyc_output coverage *.bundle.js cov.lcov coverage_html cov_profile node_modules
 
 example:
-	VERBOSE=true deno run --no-check=remote -A example.ts
+	VERBOSE=true deno run --no-check=remote -A examples/example.ts
 
 example-npm:
-	VERBOSE=true node npm/esm/example.js
+	VERBOSE=true node npm/esm/examples/example.js
 
 lint:
 	deno lint --rules-exclude=no-explicit-any,no-unused-vars,no-empty,no-inferrable-types,require-await *.ts scripts src
@@ -31,12 +31,12 @@ npm:
 	deno run -A scripts/build_npm.ts $(VERSION)
 
 fmt:
-	deno fmt --options-single-quote --options-indent-width=4 --options-line-width=100 src/ scripts/ example*.ts
+	deno fmt --options-single-quote --options-indent-width=4 --options-line-width=100 src/ scripts/ examples/ mod.ts deps.ts deps.deno.ts
 
 depchart-simple:
 	mkdir -p depchart && npx depchart `find src | grep .ts` --exclude src/test/*.ts src/log.ts --rankdir LR -o depchart/depchart-simple --node_modules omit
 
 depchart-full:
-	mkdir -p depchart && npx depchart example*.ts deps.ts mod.ts `find src | grep .ts` --rankdir LR -o depchart/depchart-full --node_modules integrated
+	mkdir -p depchart && npx depchart examples/*.ts deps.ts mod.ts `find src | grep .ts` --rankdir LR -o depchart/depchart-full --node_modules integrated
 
 depchart: depchart-simple depchart-full

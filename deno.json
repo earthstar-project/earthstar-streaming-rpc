@@ -1,0 +1,12 @@
+{
+    "fmt": {
+        "files": {
+            "include": ["src/", "scripts/", "examples/", "mod.ts", "deps.ts", "deps.deno.ts"]
+        },
+        "options": {
+            "indentWidth": 4,
+            "lineWidth": 100,
+            "singleQuote": true
+        }
+    }
+}

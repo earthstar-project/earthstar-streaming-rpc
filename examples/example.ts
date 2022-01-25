@@ -1,7 +1,7 @@
-import { makeId, sleep, TransportHttpClient, TransportHttpServer } from './mod.ts';
-import { logMain as log } from './src/log.ts';
+import { makeId, sleep, TransportHttpClient, TransportHttpServer } from '../mod.ts';
+import { logMain as log } from '../src/log.ts';
 
-import { opine, opineJson } from './deps.ts';
+import { opine, opineJson } from '../deps.ts';
 
 const main = async () => {
     log('----------------------------------------');
