@@ -23,3 +23,9 @@ export const logTransport2 = (...args: any[]) => {
         console.log('    ' + crayon.bgLightBlue.black(' transport '), ...args);
     }
 };
+
+export const logWatchable = (...args: any[]) => {
+    if (showLogs) {
+        console.log(crayon.bgRed.black(' watchable '), ...args);
+    }
+};
