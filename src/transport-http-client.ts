@@ -1,5 +1,6 @@
+import { FnsBag } from './types-bag.ts';
 import { RpcError, RpcErrorNetworkProblem, RpcErrorUseAfterClose } from './errors.ts';
-import { Fn, IConnection, ITransport, ITransportOpts, Thunk, TransportStatus } from './types.ts';
+import { IConnection, ITransport, ITransportOpts, Thunk, TransportStatus } from './types.ts';
 import { Envelope } from './types-envelope.ts';
 import { Watchable } from './watchable.ts';
 import { ensureEndsWith, setImmediate2, sleep, withTimeout } from './util.ts';
@@ -9,13 +10,13 @@ import { logTransport as log } from './log.ts';
 
 const TIMEOUT = 1000; // TODO: make this configurable
 
-export class TransportHttpClient implements ITransport {
+export class TransportHttpClient<BagType extends FnsBag> implements ITransport<BagType> {
     status: Watchable<TransportStatus> = new Watchable('OPEN' as TransportStatus);
     deviceId: string;
-    methods: { [methodName: string]: Fn };
-    connections: IConnection[] = [];
+    methods: BagType;
+    connections: IConnection<BagType>[] = [];
 
-    constructor(opts: ITransportOpts) {
+    constructor(opts: ITransportOpts<BagType>) {
         log('constructor for device', opts.deviceId);
         this.deviceId = opts.deviceId;
         this.methods = opts.methods;
@@ -40,7 +41,7 @@ export class TransportHttpClient implements ITransport {
         log('...closed');
     }
 
-    addConnection(url: string): Connection {
+    addConnection(url: string): Connection<BagType> {
         url = ensureEndsWith(url, '/');
         log('addConnection to url:', url);
 
@@ -50,7 +51,7 @@ export class TransportHttpClient implements ITransport {
             deviceId: this.deviceId,
             methods: this.methods,
             // PUSH
-            sendEnvelope: async (conn: IConnection, env: Envelope) => {
+            sendEnvelope: async (conn, env) => {
                 // send envelope in its own HTTP POST.
                 // TODO: does this work right if it's called multiple times at once?
                 // probably conn.status ends up wrong.

@@ -1,17 +1,17 @@
 import { Envelope } from './types-envelope.ts';
+import { Fn, FnsBag } from './types-bag.ts';
 import { Watchable } from './watchable.ts';
 
 export type Thunk = () => void;
-export type Fn = (...args: any[]) => any;
 
 /**
  * Typical options for the Transport constructor.
  *
  * But note that each flavor of Transport will have a slightly different constructor
  */
-export interface ITransportOpts {
+export interface ITransportOpts<BagType extends FnsBag> {
     deviceId: string; // id of this device
-    methods: { [methodName: string]: Fn };
+    methods: BagType;
     //streams: { [method: string]: Fn },
 }
 
@@ -22,13 +22,13 @@ export type TransportStatus = 'OPEN' | 'CLOSED';
  *
  * Creates Connections.
  */
-export interface ITransport {
+export interface ITransport<BagType extends FnsBag> {
     status: Watchable<TransportStatus>;
     isClosed: boolean;
 
-    methods: { [methodName: string]: Fn };
+    methods: BagType;
     deviceId: string;
-    connections: IConnection[];
+    connections: IConnection<BagType>[];
 
     onClose(cb: Thunk): Thunk;
     close(): void;
@@ -36,14 +36,14 @@ export interface ITransport {
     // constructor(opts: ITransportOpts)
 }
 
-export interface ConnectionOpts {
+export interface ConnectionOpts<BagType extends FnsBag> {
     description: string;
-    transport: ITransport;
+    transport: ITransport<BagType>;
     deviceId: string;
-    methods: { [methodName: string]: Fn };
+    methods: BagType;
 
     // conn will be "this"
-    sendEnvelope: (conn: IConnection, env: Envelope) => Promise<void>;
+    sendEnvelope: (conn: IConnection<BagType>, env: Envelope<BagType>) => Promise<void>;
 }
 
 /**
@@ -66,7 +66,9 @@ export type ConnectionStatus =
  *
  * Represents a one-to-one network connection.
  */
-export interface IConnection {
+export interface IConnection<
+    MethodsType extends FnsBag,
+> {
     // TODO: actually connections need to track their incoming and outgoing
     // statuses separately, and then exposed a combined status somehow?
     // What if only one direction has an error?
@@ -75,7 +77,7 @@ export interface IConnection {
     _closeCbs: Set<Thunk>;
 
     description: string;
-    _transport: ITransport;
+    _transport: ITransport<MethodsType>;
     _deviceId: string;
     _otherDeviceId: string | null; // null until we discover it
     _methods: { [methodName: string]: Fn };
@@ -85,19 +87,25 @@ export interface IConnection {
     onClose(cb: Thunk): Thunk;
     close(): void;
 
-    _sendEnvelope: (conn: IConnection, env: Envelope) => Promise<void>; // the transport provides this function for us
+    _sendEnvelope: (conn: IConnection<MethodsType>, env: Envelope<MethodsType>) => Promise<void>; // the transport provides this function for us
 
     // constructor(transport: ITransport);
 
-    handleIncomingEnvelope(env: Envelope): Promise<void>;
+    handleIncomingEnvelope(env: Envelope<MethodsType>): Promise<void>;
 
     // TODO: maybe this can be synchronous since
     // we don't care about the result --
     // does it wait until sent over the network, or just queued in a batch?
-    notify(method: string, ...args: any[]): Promise<void>;
+    notify<MethodKey extends keyof MethodsType>(
+        method: MethodKey,
+        ...args: Parameters<MethodsType[MethodKey]>
+    ): Promise<void>;
 
     // Wait for the return value to come back
-    request(method: string, ...args: any[]): Promise<any>;
+    request<MethodKey extends keyof MethodsType>(
+        method: MethodKey,
+        ...args: Parameters<MethodsType[MethodKey]>
+    ): Promise<ReturnType<MethodsType[MethodKey]>>;
 
     // TODO: stream
 }

@@ -4,7 +4,8 @@ import {
     RpcErrorUnknownMethod,
     RpcErrorUseAfterClose,
 } from './errors.ts';
-import { ConnectionOpts, ConnectionStatus, Fn, IConnection, ITransport, Thunk } from './types.ts';
+import { ConnectionOpts, ConnectionStatus, IConnection, ITransport, Thunk } from './types.ts';
+import { FnsBag } from './types-bag.ts';
 import {
     Envelope,
     EnvelopeNotify,
@@ -17,20 +18,20 @@ import { Deferred, makeDeferred, makeId } from './util.ts';
 
 import { logConnection as log } from './log.ts';
 
-export class Connection implements IConnection {
+export class Connection<BagType extends FnsBag> implements IConnection<BagType> {
     status: Watchable<ConnectionStatus> = new Watchable('CONNECTING' as ConnectionStatus);
     _closeCbs: Set<Thunk> = new Set();
 
     description: string;
-    _transport: ITransport;
+    _transport: ITransport<BagType>;
     _deviceId: string;
     _otherDeviceId: string | null = null;
-    _methods: { [methodName: string]: Fn };
-    _sendEnvelope: (conn: IConnection, env: Envelope) => Promise<void>;
+    _methods: BagType;
+    _sendEnvelope: (conn: IConnection<BagType>, env: Envelope<BagType>) => Promise<void>;
     _deferredRequests: Map<string, Deferred<any>> = new Map(); // keyed by env id
     _lastSeen: number = 0;
 
-    constructor(opts: ConnectionOpts) {
+    constructor(opts: ConnectionOpts<BagType>) {
         log(`Connection constructor: ${opts.deviceId} "${opts.description}"`);
         this._transport = opts.transport;
         this._deviceId = opts.deviceId;
@@ -60,7 +61,7 @@ export class Connection implements IConnection {
         log(`${this.description} | ...closed.`);
     }
 
-    async handleIncomingEnvelope(env: Envelope): Promise<void> {
+    async handleIncomingEnvelope(env: Envelope<BagType>): Promise<void> {
         // TODO: maybe this function should be in a lock to ensure it only runs one at a time
         if (this.isClosed) throw new RpcErrorUseAfterClose('the connection is closed');
         // TODO: throw error if status is ERROR ?
@@ -85,7 +86,7 @@ export class Connection implements IConnection {
                     throw new RpcErrorUnknownMethod(`unknown method in REQUEST: ${env.method}`);
                 }
                 const data = await this._methods[env.method](...env.args);
-                const responseEnvData: EnvelopeResponseWithData = {
+                const responseEnvData: EnvelopeResponseWithData<BagType, keyof BagType> = {
                     kind: 'RESPONSE',
                     fromDeviceId: this._deviceId,
                     envelopeId: env.envelopeId,
@@ -127,9 +128,12 @@ export class Connection implements IConnection {
         log(`${this.description} | ...done with incoming envelope`);
     }
 
-    async notify(method: string, ...args: any[]): Promise<void> {
+    async notify<MethodKey extends keyof BagType>(
+        method: MethodKey,
+        ...args: Parameters<BagType[MethodKey]>
+    ): Promise<void> {
         if (this.isClosed) throw new RpcErrorUseAfterClose('the connection is closed');
-        const env: EnvelopeNotify = {
+        const env: EnvelopeNotify<BagType, keyof BagType> = {
             kind: 'NOTIFY',
             fromDeviceId: this._deviceId,
             envelopeId: 'env:' + makeId(),
@@ -140,9 +144,12 @@ export class Connection implements IConnection {
         await this._sendEnvelope(this, env);
         log(`${this.description} | done sending NOTIFY.`);
     }
-    async request(method: string, ...args: any[]): Promise<any> {
+    async request<MethodKey extends keyof BagType>(
+        method: MethodKey,
+        ...args: Parameters<BagType[MethodKey]>
+    ): Promise<ReturnType<BagType[MethodKey]>> {
         if (this.isClosed) throw new RpcErrorUseAfterClose('the connection is closed');
-        const env: EnvelopeRequest = {
+        const env: EnvelopeRequest<BagType, keyof BagType> = {
             kind: 'REQUEST',
             fromDeviceId: this._deviceId,
             envelopeId: 'env:' + makeId(),

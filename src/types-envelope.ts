@@ -15,30 +15,32 @@
     * // TODO: stream-related envelopes types: start, cancel, data, end, etc
 */
 
+import { Fn, FnsBag } from './types-bag.ts';
+
 export type EnvelopeKind =
     | 'NOTIFY'
     | 'REQUEST'
     | 'RESPONSE';
 
-export interface EnvelopeNotify {
+export interface EnvelopeNotify<BagType extends FnsBag, Method extends keyof BagType> {
     kind: 'NOTIFY';
     fromDeviceId: string;
     envelopeId: string;
-    method: string;
-    args: any[];
+    method: Method;
+    args: Parameters<BagType[Method]>;
 }
-export interface EnvelopeRequest {
+export interface EnvelopeRequest<BagType extends FnsBag, Method extends keyof BagType> {
     kind: 'REQUEST';
     fromDeviceId: string;
     envelopeId: string;
-    method: string;
-    args: any[];
+    method: Method;
+    args: Parameters<BagType[Method]>;
 }
-export interface EnvelopeResponseWithData {
+export interface EnvelopeResponseWithData<BagType extends FnsBag, Method extends keyof BagType> {
     kind: 'RESPONSE';
     fromDeviceId: string;
     envelopeId: string;
-    data: any;
+    data: ReturnType<BagType[Method]>;
 }
 export interface EnvelopeResponseWithError {
     kind: 'RESPONSE';
@@ -46,12 +48,12 @@ export interface EnvelopeResponseWithError {
     envelopeId: string;
     error: string;
 }
-export type EnvelopeResponse =
-    | EnvelopeResponseWithData
+export type EnvelopeResponse<BagType extends FnsBag> =
+    | EnvelopeResponseWithData<BagType, keyof BagType>
     | EnvelopeResponseWithError;
 
-export type Envelope =
-    | EnvelopeNotify
-    | EnvelopeRequest
-    | EnvelopeResponseWithData
+export type Envelope<BagType extends FnsBag> =
+    | EnvelopeNotify<BagType, keyof BagType>
+    | EnvelopeRequest<BagType, keyof BagType>
+    | EnvelopeResponseWithData<BagType, keyof BagType>
     | EnvelopeResponseWithError;
