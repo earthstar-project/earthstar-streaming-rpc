@@ -1,13 +1,14 @@
-import { Fn, IConnection, ITransport, Thunk, TransportStatus } from './types.ts';
+import { FnsBag } from './types-bag.ts';
+import { IConnection, ITransport, Thunk, TransportStatus } from './types.ts';
 import { Envelope } from './types-envelope.ts';
 import { Watchable } from './watchable.ts';
 import { Connection } from './connection.ts';
 
 import { logTransport as log } from './log.ts';
 
-export interface ITransportLocalOpts {
+export interface ITransportLocalOpts<BagType extends FnsBag> {
     deviceId: string; // id of this device
-    methods: { [methodName: string]: Fn };
+    methods: BagType;
     //streams: { [method: string]: Fn },
     description: string;
 }
@@ -17,14 +18,14 @@ export interface ITransportLocalOpts {
  *
  * This is mostly useful for testing.
  */
-export class TransportLocal implements ITransport {
+export class TransportLocal<BagType extends FnsBag> implements ITransport<BagType> {
     status: Watchable<TransportStatus> = new Watchable('OPEN' as TransportStatus);
     deviceId: string;
-    methods: { [methodName: string]: Fn };
-    connections: IConnection[] = [];
+    methods: BagType;
+    connections: IConnection<BagType>[] = [];
     description: string;
 
-    constructor(opts: ITransportLocalOpts) {
+    constructor(opts: ITransportLocalOpts<BagType>) {
         log(`TransportLocal constructor: ${opts.deviceId} "${opts.description}"`);
         this.deviceId = opts.deviceId;
         this.methods = opts.methods;
@@ -50,18 +51,18 @@ export class TransportLocal implements ITransport {
         log(`${this.deviceId} | ...closed`);
     }
 
-    addConnection(otherTrans: TransportLocal) {
+    addConnection(otherTrans: TransportLocal<BagType>) {
         if (this.isClosed) throw new Error('Can\'t use a transport after it\'s closed');
         // deno-lint-ignore prefer-const
-        let thisConn: Connection;
-        // deno-lint-ignore prefer-const
-        let otherConn: Connection;
+        let thisConn: Connection<BagType>;
+        // deno-lint-ignore prefer-consv
+        let otherConn: Connection<BagType>;
         thisConn = new Connection({
             description: `conn ${this.deviceId} to ${otherTrans.deviceId}`,
             transport: this,
             deviceId: this.deviceId,
             methods: this.methods,
-            sendEnvelope: async (conn: IConnection, env: Envelope) => {
+            sendEnvelope: async (conn: IConnection<BagType>, env: Envelope<BagType>) => {
                 await otherConn.handleIncomingEnvelope(env);
             },
         });
@@ -70,7 +71,7 @@ export class TransportLocal implements ITransport {
             transport: otherTrans,
             deviceId: otherTrans.deviceId,
             methods: otherTrans.methods,
-            sendEnvelope: async (conn: IConnection, env: Envelope) => {
+            sendEnvelope: async (conn: IConnection<BagType>, env: Envelope<BagType>) => {
                 await thisConn.handleIncomingEnvelope(env);
             },
         });
@@ -85,7 +86,7 @@ export class TransportLocal implements ITransport {
     }
 }
 
-export const makeLocalTransportPair = (methods: { [methodName: string]: Fn }) => {
+export function makeLocalTransportPair<BagType extends FnsBag>(methods: BagType) {
     const transA = new TransportLocal({
         deviceId: 'device:A',
         methods,
@@ -98,4 +99,4 @@ export const makeLocalTransportPair = (methods: { [methodName: string]: Fn }) =>
     });
     const { thisConn, otherConn } = transA.addConnection(transB);
     return { transA, transB, thisConn, otherConn };
-};
+}

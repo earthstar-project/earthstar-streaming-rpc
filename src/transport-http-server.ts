@@ -1,4 +1,5 @@
-import { Fn, IConnection, ITransport, Thunk, TransportStatus } from './types.ts';
+import { FnsBag } from './types-bag.ts';
+import { IConnection, ITransport, Thunk, TransportStatus } from './types.ts';
 import { Envelope } from './types-envelope.ts';
 import { ensureEndsWith } from './util.ts';
 import { Watchable } from './watchable.ts';
@@ -10,9 +11,9 @@ import type { Opine } from '../deps.ts';
 
 const TIMEOUT = 1000; // TODO: make this configurable
 
-export interface ITransportHttpServerOpts {
+export interface ITransportHttpServerOpts<BagType extends FnsBag> {
     deviceId: string; // id of this device
-    methods: { [methodName: string]: Fn };
+    methods: BagType;
     //streams: { [method: string]: Fn },
     app: Opine;
     path: string; // url path on server, like '/'
@@ -23,18 +24,18 @@ export interface ITransportHttpServerOpts {
  *
  * This is mostly useful for testing.
  */
-export class TransportHttpServer implements ITransport {
+export class TransportHttpServer<BagType extends FnsBag> implements ITransport<BagType> {
     status: Watchable<TransportStatus> = new Watchable('OPEN' as TransportStatus);
     deviceId: string;
-    methods: { [methodName: string]: Fn };
-    connections: IConnection[] = [];
+    methods: BagType;
+    connections: IConnection<BagType>[] = [];
     description: string;
 
     _app: Opine;
     _path: string;
-    _outgoingBuffer: Map<string, Envelope[]> = new Map(); // keyed by other side's deviceId
+    _outgoingBuffer: Map<string, Envelope<BagType>[]> = new Map(); // keyed by other side's deviceId
 
-    constructor(opts: ITransportHttpServerOpts) {
+    constructor(opts: ITransportHttpServerOpts<BagType>) {
         log(`TransportHttpServer constructor: ${opts.deviceId}`);
         this.deviceId = opts.deviceId;
         this.methods = opts.methods;
@@ -81,7 +82,7 @@ export class TransportHttpServer implements ITransport {
             const conn = this._addOrGetConnection(otherDeviceId);
 
             try {
-                const envs = req.body as Envelope[];
+                const envs = req.body as Envelope<BagType>[];
                 if (!envs || !Array.isArray(envs)) res.sendStatus(400);
                 log(`POST: received ${envs.length} envelopes; handling them with the Connection...`);
                 for (const env of envs) {
@@ -97,7 +98,7 @@ export class TransportHttpServer implements ITransport {
         });
     }
 
-    _addOrGetConnection(otherDeviceId: string): IConnection {
+    _addOrGetConnection(otherDeviceId: string): IConnection<BagType> {
         for (const conn of this.connections) {
             if (conn._otherDeviceId === otherDeviceId) {
                 log('Connection exists already');

@@ -1,5 +1,6 @@
 import { assert, assertEquals } from './asserts.ts';
 import { IConnection, ITransport } from '../types.ts';
+import { FnsBag } from '../types-bag.ts';
 import { makeLocalTransportPair } from '../transport-local.ts';
 
 import { sleep } from '../util.ts';
@@ -34,7 +35,11 @@ const makeObservedMethods = (e: EventLog) => {
     };
 };
 
-const testConnectionNotify = async (t: Deno.TestContext, conn: IConnection, e: EventLog) => {
+async function testConnectionNotify(
+    t: Deno.TestContext,
+    conn: IConnection<ReturnType<typeof makeObservedMethods>>,
+    e: EventLog,
+) {
     await t.step('notify', async () => {
         e.clear();
         e.note('about to shout');
@@ -51,7 +56,7 @@ const testConnectionNotify = async (t: Deno.TestContext, conn: IConnection, e: E
 
         // error in the method call (no such method
         try {
-            await conn.notify('nosuch');
+            await conn.notify('nosuch' as unknown as keyof typeof makeObservedMethods);
             assert(true, 'notify should not return errors');
         } catch (error) {
             assert(false, 'notify should not return errors');
@@ -59,19 +64,19 @@ const testConnectionNotify = async (t: Deno.TestContext, conn: IConnection, e: E
 
         // error in the method
         try {
-            await conn.notify('alwaysError');
+            await conn.notify('alwaysError', 'Error!');
             assert(true, 'notify should not return errors');
         } catch (error) {
             assert(false, 'notify should not return errors');
         }
     });
-};
+}
 
-const testConnectionRequestResponse = async (
+async function testConnectionRequestResponse(
     t: Deno.TestContext,
-    conn: IConnection,
+    conn: IConnection<ReturnType<typeof makeObservedMethods>>,
     e: EventLog,
-) => {
+) {
     await t.step('request-response', async () => {
         const three = await conn.request('add', 1, 2);
         assertEquals(three, 3, 'conn.request returns correct answer');
@@ -82,7 +87,9 @@ const testConnectionRequestResponse = async (
     await t.step('request-response with error', async () => {
         // error in the method call (no such method)
         try {
-            const three = await conn.request('nosuch');
+            const three = await conn.request(
+                'nosuch' as unknown as keyof typeof makeObservedMethods,
+            );
             assert(false, 'should catch error from unknown method call');
         } catch (error) {
             assert(true, 'should catch error from unknown method call');
@@ -90,21 +97,21 @@ const testConnectionRequestResponse = async (
 
         // error in the method
         try {
-            const three = await conn.request('alwaysError');
+            const three = await conn.request('alwaysError', 'Error!');
             assert(false, 'should catch error from method call');
         } catch (error) {
             assert(true, 'should catch error from method call');
         }
     });
-};
+}
 
-const testClosingConnection = async (
+async function testClosingConnection<BagType extends FnsBag>(
     t: Deno.TestContext,
-    connAtoB: IConnection,
-    connBtoA: IConnection,
-    transA: ITransport,
-    transB: ITransport,
-) => {
+    connAtoB: IConnection<BagType>,
+    connBtoA: IConnection<BagType>,
+    transA: ITransport<BagType>,
+    transB: ITransport<BagType>,
+) {
     await t.step('closing things', () => {
         assert(!transA.isClosed, 'transA is not closed yet');
         assert(!transB.isClosed, 'transB is not closed yet');
@@ -123,7 +130,7 @@ const testClosingConnection = async (
         assert(transA.isClosed, 'transA is closed');
         assert(transB.isClosed, 'transB is closed');
     });
-};
+}
 
 Deno.test('connection behaviour: TransportLocal', async (t) => {
     //----------------------------------------
