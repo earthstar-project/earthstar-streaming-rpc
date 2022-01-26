@@ -40,7 +40,7 @@ To use in Deno you can import directly from Github using a specific git tag as a
 import {
     TransportHttpClient,
     TransportHttpServer,
-} from 'https://raw.githubusercontent.com/earthstar-project/earthstar-streaming-rpc/v1.0.1/mod.ts';
+} from 'https://raw.githubusercontent.com/earthstar-project/earthstar-streaming-rpc/v2.0.0/mod.ts';
 ```
 
 To use with Node or apps built with NPM dependencies:
@@ -99,8 +99,14 @@ const conn = transport.addConnection('http://example.com/api/v1');
 
 // Server-side transports don't let you create Connections on demand --
 // they sit and wait for connections to arrive.
-// You can grab the existing connections from the array
-// at transport.connections
+// You can grab the existing connections from the WatchableSet
+// at transport.connections, or subscribe to changes
+for (const conn of transport.connections) {
+    /* ... */
+}
+transport.connections.onAdd((conn) => {/* ... */});
+transport.connections.onDelete((conn) => {/* ... */});
+transport.connections.onChange((conn) => {/* ... */});
 ```
 
 Use the Connection to call methods on the other device. There are 3 ways to do this:
