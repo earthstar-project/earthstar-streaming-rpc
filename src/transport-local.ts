@@ -56,7 +56,7 @@ export class TransportLocal<BagType extends FnsBag> implements ITransport<BagTyp
         if (this.isClosed) throw new Error('Can\'t use a transport after it\'s closed');
         // deno-lint-ignore prefer-const
         let thisConn: Connection<BagType>;
-        // deno-lint-ignore prefer-consv
+        // deno-lint-ignore prefer-const
         let otherConn: Connection<BagType>;
         thisConn = new Connection({
             description: `conn ${this.deviceId} to ${otherTrans.deviceId}`,
@@ -79,7 +79,7 @@ export class TransportLocal<BagType extends FnsBag> implements ITransport<BagTyp
 
         // close one side of the connection, the other side closes
         thisConn.onClose(() => {
-            otherConn.close()
+            otherConn.close();
             this.connections.delete(thisConn);
         });
         otherConn.onClose(() => thisConn.close());

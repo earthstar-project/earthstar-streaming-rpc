@@ -18,10 +18,10 @@ export class Watchable<T> {
         const oldVal = this.value;
         this.value = newVal;
         if (oldVal !== this.value) {
-            this._cbs.forEach(cb => cb(oldVal, newVal));
+            this._cbs.forEach((cb) => cb(oldVal, newVal));
             const cbsByTarget = this._cbsByTarget.get(newVal);
             if (cbsByTarget) {
-                cbsByTarget.forEach(cb => cb(oldVal, newVal));
+                cbsByTarget.forEach((cb) => cb(oldVal, newVal));
             }
         }
     }
@@ -48,29 +48,29 @@ export class WatchableSet<T> extends Set<T> {
         super(iterable);
     }
     add(value: T) {
-        let had = super.has(value);
+        const had = super.has(value);
         super.add(value);
         if (!had) {
-            this._addCbs.forEach(cb => cb(value));
-            this._changeCbs.forEach(cb => cb());
+            this._addCbs.forEach((cb) => cb(value));
+            this._changeCbs.forEach((cb) => cb());
         }
         return this;
     }
     delete(value: T) {
-        let had = super.has(value);
+        const had = super.has(value);
         super.delete(value);
         if (had) {
-            this._deleteCbs.forEach(cb => cb(value));
-            this._changeCbs.forEach(cb => cb());
+            this._deleteCbs.forEach((cb) => cb(value));
+            this._changeCbs.forEach((cb) => cb());
         }
         return had;
     }
     clear() {
-        for (let value of super.values()) {
+        for (const value of super.values()) {
             super.delete(value);
-            this._deleteCbs.forEach(cb => cb(value));
+            this._deleteCbs.forEach((cb) => cb(value));
         }
-        this._changeCbs.forEach(cb => cb());
+        this._changeCbs.forEach((cb) => cb());
     }
 
     onAdd(cb: CbValue<T>) {

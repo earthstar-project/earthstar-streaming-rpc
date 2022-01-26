@@ -38,10 +38,10 @@ const main = async () => {
         app,
         path,
     });
-    transportServer.connections.onAdd(conn => {
+    transportServer.connections.onAdd((conn) => {
         log(`onAdd connection: ${conn.description}`);
     });
-    transportServer.connections.onDelete(conn => {
+    transportServer.connections.onDelete((conn) => {
         log(`onDelete connection: ${conn.description}`);
     });
     transportServer.connections.onChange(() => {

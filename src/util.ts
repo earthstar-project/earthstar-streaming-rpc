@@ -1,7 +1,7 @@
 import { RpcErrorTimeout } from './errors.ts';
 
 export const withTimeout = <T>(ms: number, prom: Promise<T>): Promise<T> => {
-    let rejectAfterMs = new Promise((res, rej) => {
+    const rejectAfterMs = new Promise((res, rej) => {
         setTimeout(() => rej(new RpcErrorTimeout()), ms);
     });
     return Promise.race([rejectAfterMs, prom]) as Promise<T>;

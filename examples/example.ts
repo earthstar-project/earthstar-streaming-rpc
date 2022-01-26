@@ -59,7 +59,7 @@ const main = async () => {
     log('request-response from server to client');
 
     try {
-        const connServerToClient = [...transServer.connections][0];  // a hack to get the connection
+        const connServerToClient = [...transServer.connections][0]; // a hack to get the connection
         const thirty = await connServerToClient.request('add', 10, 20);
         log('response:', thirty);
     } catch (error) {
