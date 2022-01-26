@@ -12,7 +12,7 @@ digraph G {
     
     // files in their folder clusters
 
-    subgraph cluster6120518647 {
+    subgraph cluster7484784333 {
         label=<<b>root</b>>;
         style="rounded";
         color=bisque4;
@@ -20,7 +20,7 @@ digraph G {
                     
         "deps.ts" [label="deps.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
 
-        subgraph cluster9450472687 {
+        subgraph cluster249736545 {
             label=<<b>src</b>>;
             style="rounded,filled";
             fillcolor=bisque;
@@ -32,6 +32,7 @@ digraph G {
             "src/transport-http-client.ts" [label="transport-http-client.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/transport-http-server.ts" [label="transport-http-server.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/transport-local.ts" [label="transport-local.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+            "src/types-bag.ts" [label="types-bag.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/types-envelope.ts" [label="types-envelope.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/types.ts" [label="types.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/util.ts" [label="util.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
@@ -42,26 +43,31 @@ digraph G {
     // edges between files
     "src/connection.ts" -> "src/errors.ts" [penwidth=2; color=darkslategray4];
     "src/connection.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
+    "src/connection.ts" -> "src/types-bag.ts" [penwidth=2; color=darkslategray4];
     "src/connection.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
     "src/connection.ts" -> "src/watchable.ts" [penwidth=2; color=darkslategray4];
     "src/connection.ts" -> "src/util.ts" [penwidth=2; color=darkslategray4];
+    "src/transport-http-client.ts" -> "src/types-bag.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-client.ts" -> "src/errors.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-client.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
-    "src/transport-http-client.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-client.ts" -> "src/watchable.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-client.ts" -> "src/util.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-client.ts" -> "src/connection.ts" [penwidth=2; color=darkslategray4];
+    "src/transport-http-server.ts" -> "src/types-bag.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-server.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-server.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-server.ts" -> "src/util.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-server.ts" -> "src/watchable.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-server.ts" -> "src/connection.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-server.ts" -> "deps.ts" [penwidth=2; color=darkslategray4];
+    "src/transport-local.ts" -> "src/types-bag.ts" [penwidth=2; color=darkslategray4];
     "src/transport-local.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
     "src/transport-local.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
     "src/transport-local.ts" -> "src/watchable.ts" [penwidth=2; color=darkslategray4];
     "src/transport-local.ts" -> "src/connection.ts" [penwidth=2; color=darkslategray4];
+    "src/types-envelope.ts" -> "src/types-bag.ts" [penwidth=2; color=darkslategray4];
     "src/types.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
+    "src/types.ts" -> "src/types-bag.ts" [penwidth=2; color=darkslategray4];
     "src/types.ts" -> "src/watchable.ts" [penwidth=2; color=darkslategray4];
     "src/util.ts" -> "src/errors.ts" [penwidth=2; color=darkslategray4];
 

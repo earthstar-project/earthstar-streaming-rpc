@@ -14,7 +14,7 @@ digraph G {
         "deps.ts" [label="deps.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
         "mod.ts" [label="mod.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
 
-        subgraph cluster816164315 {
+        subgraph cluster7963401700 {
             label=<<b>examples</b>>;
             style="rounded,filled";
             fillcolor=bisque;
@@ -26,7 +26,7 @@ digraph G {
             "examples/example.ts" [label="example.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
         }
 
-        subgraph cluster8707387619 {
+        subgraph cluster7084021668 {
             label=<<b>src</b>>;
             style="rounded,filled";
             fillcolor=bisque;
@@ -39,12 +39,13 @@ digraph G {
             "src/transport-http-client.ts" [label="transport-http-client.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/transport-http-server.ts" [label="transport-http-server.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/transport-local.ts" [label="transport-local.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
+            "src/types-bag.ts" [label="types-bag.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/types-envelope.ts" [label="types-envelope.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/types.ts" [label="types.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/util.ts" [label="util.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
             "src/watchable.ts" [label="watchable.ts", shape=rectangle; style="rounded,filled"; color=darkslategray3];
     
-            subgraph cluster2588540949 {
+            subgraph cluster1013305668 {
                 label=<<b>test</b>>;
                 style="rounded,filled";
                 fillcolor=bisque;
@@ -81,6 +82,7 @@ digraph G {
     "mod.ts" -> "src/watchable.ts" [penwidth=2; color=darkslategray4];
     "src/connection.ts" -> "src/errors.ts" [penwidth=2; color=darkslategray4];
     "src/connection.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
+    "src/connection.ts" -> "src/types-bag.ts" [penwidth=2; color=darkslategray4];
     "src/connection.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
     "src/connection.ts" -> "src/watchable.ts" [penwidth=2; color=darkslategray4];
     "src/connection.ts" -> "src/util.ts" [penwidth=2; color=darkslategray4];
@@ -88,19 +90,21 @@ digraph G {
     "src/log.ts" -> "deps.ts" [penwidth=2; color=darkslategray4];
     "src/test/connection.test.ts" -> "src/test/asserts.ts" [penwidth=2; color=darkslategray4];
     "src/test/connection.test.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
+    "src/test/connection.test.ts" -> "src/types-bag.ts" [penwidth=2; color=darkslategray4];
     "src/test/connection.test.ts" -> "src/transport-local.ts" [penwidth=2; color=darkslategray4];
     "src/test/connection.test.ts" -> "src/util.ts" [penwidth=2; color=darkslategray4];
     "src/test/connection.test.ts" -> "src/test/event-log.ts" [penwidth=2; color=darkslategray4];
     "src/test/event-log.ts" -> "src/test/asserts.ts" [penwidth=2; color=darkslategray4];
     "src/test/util.test.ts" -> "src/test/asserts.ts" [penwidth=2; color=darkslategray4];
     "src/test/util.test.ts" -> "src/util.ts" [penwidth=2; color=darkslategray4];
+    "src/transport-http-client.ts" -> "src/types-bag.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-client.ts" -> "src/errors.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-client.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
-    "src/transport-http-client.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-client.ts" -> "src/watchable.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-client.ts" -> "src/util.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-client.ts" -> "src/connection.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-client.ts" -> "src/log.ts" [penwidth=2; color=darkslategray4];
+    "src/transport-http-server.ts" -> "src/types-bag.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-server.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-server.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-server.ts" -> "src/util.ts" [penwidth=2; color=darkslategray4];
@@ -108,12 +112,15 @@ digraph G {
     "src/transport-http-server.ts" -> "src/connection.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-server.ts" -> "src/log.ts" [penwidth=2; color=darkslategray4];
     "src/transport-http-server.ts" -> "deps.ts" [penwidth=2; color=darkslategray4];
+    "src/transport-local.ts" -> "src/types-bag.ts" [penwidth=2; color=darkslategray4];
     "src/transport-local.ts" -> "src/types.ts" [penwidth=2; color=darkslategray4];
     "src/transport-local.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
     "src/transport-local.ts" -> "src/watchable.ts" [penwidth=2; color=darkslategray4];
     "src/transport-local.ts" -> "src/connection.ts" [penwidth=2; color=darkslategray4];
     "src/transport-local.ts" -> "src/log.ts" [penwidth=2; color=darkslategray4];
+    "src/types-envelope.ts" -> "src/types-bag.ts" [penwidth=2; color=darkslategray4];
     "src/types.ts" -> "src/types-envelope.ts" [penwidth=2; color=darkslategray4];
+    "src/types.ts" -> "src/types-bag.ts" [penwidth=2; color=darkslategray4];
     "src/types.ts" -> "src/watchable.ts" [penwidth=2; color=darkslategray4];
     "src/util.ts" -> "src/errors.ts" [penwidth=2; color=darkslategray4];
 
