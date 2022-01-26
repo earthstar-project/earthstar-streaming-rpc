@@ -15,12 +15,13 @@ export interface ITransportOpts<BagType extends FnsBag> {
     //streams: { [method: string]: Fn },
 }
 
+export type TransportStatus = 'OPEN' | 'CLOSED';
+
 /**
  * Manages a specific kind of connection (an HTTP server, etc).
  *
  * Creates Connections.
  */
-export type TransportStatus = 'OPEN' | 'CLOSED';
 export interface ITransport<BagType extends FnsBag> {
     status: Watchable<TransportStatus>;
     isClosed: boolean;
@@ -61,7 +62,7 @@ export type ConnectionStatus =
     | 'CLOSED';
 
 /**
- * Converts method calls to Envelopes and passes them to a Postman.
+ * Converts method calls to Envelopes and passes them to a Transport.
  *
  * Represents a one-to-one network connection.
  */

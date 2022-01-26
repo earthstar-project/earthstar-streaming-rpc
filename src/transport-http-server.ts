@@ -19,11 +19,7 @@ export interface ITransportHttpServerOpts<BagType extends FnsBag> {
     path: string; // url path on server, like '/'
 }
 
-/**
- * A Transport that connects directly to other Transports in memory, on the same machine.
- *
- * This is mostly useful for testing.
- */
+/** A Transport that connects directly to other Transports via HTTP. */
 export class TransportHttpServer<BagType extends FnsBag> implements ITransport<BagType> {
     status: Watchable<TransportStatus> = new Watchable('OPEN' as TransportStatus);
     deviceId: string;

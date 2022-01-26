@@ -3,7 +3,12 @@ import { build } from 'https://deno.land/x/dnt@0.16.0/mod.ts';
 await Deno.remove('npm', { recursive: true }).catch((_) => {});
 
 await build({
-    entryPoints: ['./mod.ts', './example.ts'],
+    entryPoints: [
+        './mod.ts',
+        './examples/example.ts',
+        './examples/example-http-client.ts',
+        './examples/example-http-server.ts',
+    ],
     outDir: './npm',
     shims: {
         deno: true,
@@ -19,6 +24,7 @@ await build({
                     exportName: 'default',
                 }],
             },
+            /*
             {
                 package: {
                     name: 'web-streams-polyfill',
@@ -28,6 +34,7 @@ await build({
                     name: 'ReadableStream',
                 }],
             },
+            */
             {
                 package: {
                     name: 'express',
