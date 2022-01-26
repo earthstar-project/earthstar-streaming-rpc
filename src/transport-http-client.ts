@@ -1,8 +1,7 @@
 import { FnsBag } from './types-bag.ts';
 import { RpcError, RpcErrorNetworkProblem, RpcErrorUseAfterClose } from './errors.ts';
 import { IConnection, ITransport, ITransportOpts, Thunk, TransportStatus } from './types.ts';
-import { Envelope } from './types-envelope.ts';
-import { Watchable } from './watchable.ts';
+import { Watchable, WatchableSet } from './watchable.ts';
 import { ensureEndsWith, setImmediate2, sleep, withTimeout } from './util.ts';
 import { Connection } from './connection.ts';
 
@@ -14,7 +13,7 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
     status: Watchable<TransportStatus> = new Watchable('OPEN' as TransportStatus);
     deviceId: string;
     methods: BagType;
-    connections: IConnection<BagType>[] = [];
+    connections: WatchableSet<IConnection<BagType>> = new WatchableSet();
 
     constructor(opts: ITransportOpts<BagType>) {
         log('constructor for device', opts.deviceId);
@@ -38,6 +37,7 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
         for (const conn of this.connections) {
             conn.close();
         }
+        this.connections.clear();
         log('...closed');
     }
 
@@ -139,7 +139,8 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
             }
         });
 
-        this.connections.push(conn);
+        conn.onClose(() => this.connections.delete(conn));
+        this.connections.add(conn);
         return conn;
     }
 }

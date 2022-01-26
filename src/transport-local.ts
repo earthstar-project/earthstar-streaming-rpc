@@ -1,7 +1,7 @@
 import { FnsBag } from './types-bag.ts';
 import { IConnection, ITransport, Thunk, TransportStatus } from './types.ts';
 import { Envelope } from './types-envelope.ts';
-import { Watchable } from './watchable.ts';
+import { Watchable, WatchableSet } from './watchable.ts';
 import { Connection } from './connection.ts';
 
 import { logTransport as log } from './log.ts';
@@ -22,7 +22,7 @@ export class TransportLocal<BagType extends FnsBag> implements ITransport<BagTyp
     status: Watchable<TransportStatus> = new Watchable('OPEN' as TransportStatus);
     deviceId: string;
     methods: BagType;
-    connections: IConnection<BagType>[] = [];
+    connections: WatchableSet<IConnection<BagType>> = new WatchableSet();
     description: string;
 
     constructor(opts: ITransportLocalOpts<BagType>) {
@@ -48,6 +48,7 @@ export class TransportLocal<BagType extends FnsBag> implements ITransport<BagTyp
         for (const conn of this.connections) {
             conn.close();
         }
+        this.connections.clear();
         log(`${this.deviceId} | ...closed`);
     }
 
@@ -77,11 +78,15 @@ export class TransportLocal<BagType extends FnsBag> implements ITransport<BagTyp
         });
 
         // close one side of the connection, the other side closes
-        thisConn.onClose(() => otherConn.close());
+        thisConn.onClose(() => {
+            otherConn.close()
+            this.connections.delete(thisConn);
+        });
         otherConn.onClose(() => thisConn.close());
 
-        this.connections.push(thisConn);
-        otherTrans.connections.push(otherConn);
+        this.connections.add(thisConn);
+        otherTrans.connections.add(otherConn);
+
         return { thisConn, otherConn };
     }
 }

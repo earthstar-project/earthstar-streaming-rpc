@@ -29,7 +29,7 @@ const main = async () => {
     const app = opine();
     app.use(opineJson());
 
-    const server = app.listen(port, () => {
+    const expressServer = app.listen(port, () => {
         log('|    server started at', serverUrl);
     });
     const transportServer = new TransportHttpServer({
@@ -38,17 +38,26 @@ const main = async () => {
         app,
         path,
     });
+    transportServer.connections.onAdd(conn => {
+        log(`onAdd connection: ${conn.description}`);
+    });
+    transportServer.connections.onDelete(conn => {
+        log(`onDelete connection: ${conn.description}`);
+    });
+    transportServer.connections.onChange(() => {
+        log(`onChange connections`);
+    });
 
     while (true) {
         const connections = transportServer.connections;
         log('----------------------------------------');
         log('|   server status:', transportServer.status.get());
-        log(`|   ${connections.length} connections:`);
+        log(`|   ${connections.size} connections:`);
         for (const conn of connections) {
             log(`|   |   ${conn.status.get()} - ${conn.description}`);
         }
 
-        for (let conn of transportServer.connections) {
+        for (let conn of connections) {
             try {
                 log(`|   notify: shouting to ${conn.description}`);
                 await conn.notify('shout', `this is a notify from ${transportServer.deviceId}`);

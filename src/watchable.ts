@@ -44,7 +44,7 @@ export class WatchableSet<T> extends Set<T> {
     _addCbs: Set<CbValue<T>> = new Set();
     _deleteCbs: Set<CbValue<T>> = new Set();
     _changeCbs: Set<Thunk> = new Set();
-    constructor(iterable: Iterable<T>) {
+    constructor(iterable?: Iterable<T>) {
         super(iterable);
     }
     add(value: T) {
