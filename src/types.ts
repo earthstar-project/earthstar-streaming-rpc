@@ -1,6 +1,6 @@
 import { Envelope } from './types-envelope.ts';
 import { Fn, FnsBag } from './types-bag.ts';
-import { Watchable } from './watchable.ts';
+import { Watchable, WatchableSet } from './watchable.ts';
 
 export type Thunk = () => void;
 
@@ -28,7 +28,7 @@ export interface ITransport<BagType extends FnsBag> {
 
     methods: BagType;
     deviceId: string;
-    connections: IConnection<BagType>[];
+    connections: WatchableSet<IConnection<BagType>>;
 
     onClose(cb: Thunk): Thunk;
     close(): void;

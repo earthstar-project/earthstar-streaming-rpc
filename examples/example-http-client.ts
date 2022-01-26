@@ -28,6 +28,16 @@ const main = async () => {
         deviceId,
         methods,
     });
+    transportClient.connections.onAdd(conn => {
+        log(`onAdd connection: ${conn.description}`);
+    });
+    transportClient.connections.onDelete(conn => {
+        log(`onDelete connection: ${conn.description}`);
+    });
+    transportClient.connections.onChange(() => {
+        log(`onChange connections`);
+    });
+
     const conn = transportClient.addConnection(serverUrl);
 
     while (true) {

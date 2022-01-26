@@ -2,7 +2,7 @@ import { FnsBag } from './types-bag.ts';
 import { IConnection, ITransport, Thunk, TransportStatus } from './types.ts';
 import { Envelope } from './types-envelope.ts';
 import { ensureEndsWith } from './util.ts';
-import { Watchable } from './watchable.ts';
+import { Watchable, WatchableSet } from './watchable.ts';
 import { Connection } from './connection.ts';
 
 import { logTransport2 as log } from './log.ts';
@@ -10,6 +10,7 @@ import { logTransport2 as log } from './log.ts';
 import type { Opine } from '../deps.ts';
 
 const TIMEOUT = 1000; // TODO: make this configurable
+const KEEP_STALE_CONNECTIONS_FOR = 10 * 1000;
 
 export interface ITransportHttpServerOpts<BagType extends FnsBag> {
     deviceId: string; // id of this device
@@ -24,7 +25,7 @@ export class TransportHttpServer<BagType extends FnsBag> implements ITransport<B
     status: Watchable<TransportStatus> = new Watchable('OPEN' as TransportStatus);
     deviceId: string;
     methods: BagType;
-    connections: IConnection<BagType>[] = [];
+    connections: WatchableSet<IConnection<BagType>> = new WatchableSet();
     description: string;
 
     _app: Opine;
@@ -40,18 +41,16 @@ export class TransportHttpServer<BagType extends FnsBag> implements ITransport<B
         this._path = ensureEndsWith(opts.path, '/');
 
         // clean up stale connections after a few seconds of not seeing them
-        const KEEP_STALE_CONNECTIONS_FOR_MS = 20 * 1000;
         const staleCheckTimer = setInterval(() => {
             log('checking for stale connections');
             const now = Date.now();
-            let conns = [...this.connections];
-            for (let conn of conns) {
-                if (conn._lastSeen < now - KEEP_STALE_CONNECTIONS_FOR_MS) {
+            for (const conn of this.connections) {
+                if (conn._lastSeen < now - KEEP_STALE_CONNECTIONS_FOR) {
                     log(`    removing stale connection to ${conn._deviceId}`);
-                    conn.close(); // this will also remove it from the array
+                    conn.close(); // this will also remove it from the set
                 }
             }
-        }, KEEP_STALE_CONNECTIONS_FOR_MS + 1000);
+        }, KEEP_STALE_CONNECTIONS_FOR + 1000);
         this.onClose(() => clearInterval(staleCheckTimer));
 
         // outgoing
@@ -123,9 +122,9 @@ export class TransportHttpServer<BagType extends FnsBag> implements ITransport<B
         conn.onClose(() => {
             log('conn.onClose: clearing outgoing buffer');
             this._outgoingBuffer.delete(conn._otherDeviceId as string);
-            this.connections = this.connections.filter((c) => c !== conn);
+            this.connections.delete(conn);
         });
-        this.connections.push(conn);
+        this.connections.add(conn);
         return conn;
     }
 
@@ -145,6 +144,7 @@ export class TransportHttpServer<BagType extends FnsBag> implements ITransport<B
         for (const conn of this.connections) {
             conn.close();
         }
+        this.connections.clear();
         log(`${this.deviceId} | ...closed`);
     }
 }

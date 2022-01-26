@@ -53,11 +53,8 @@ export class Connection<BagType extends FnsBag> implements IConnection<BagType> 
         log(`${this.description} | closing...`);
         this.status.set('CLOSED');
         for (const cb of this._closeCbs) cb();
-        this._closeCbs = new Set();
-        // remove from transport's list of connections
-        this._transport.connections = this._transport.connections.filter(
-            (c) => c !== this,
-        );
+        this._closeCbs.clear();
+        // the transport is responsible for removing this connection from transport.collections
         log(`${this.description} | ...closed.`);
     }
 
