@@ -1,4 +1,4 @@
-import { build } from 'https://deno.land/x/dnt@0.16.0/mod.ts';
+import { build } from 'https://deno.land/x/dnt@0.16.1/mod.ts';
 
 await Deno.remove('npm', { recursive: true }).catch((_) => {});
 
@@ -60,8 +60,7 @@ await build({
     },
     compilerOptions: {
         // ES2020 for Node v14 support
-        // ES2021 to get Promise.all
-        target: 'ES2021',
+        target: 'ES2020',
     },
     package: {
         // package.json properties
