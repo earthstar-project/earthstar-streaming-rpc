@@ -9,7 +9,7 @@ import { logTransport2 as log } from './log.ts';
 
 const KEEP_STALE_CONNECTIONS_FOR = 10 * 1000;
 
-export interface ITransportHttpHandlerOpts<BagType extends FnsBag> {
+export interface ITransportHttpServerHandlerOpts<BagType extends FnsBag> {
     deviceId: string; // id of this device
     methods: BagType;
     //streams: { [method: string]: Fn },
@@ -18,7 +18,7 @@ export interface ITransportHttpHandlerOpts<BagType extends FnsBag> {
 }
 
 /** A Transport that connects directly to other Transports via HTTP. */
-export class TransportHttpHandler<BagType extends FnsBag> implements ITransport<BagType> {
+export class TransportHttpServerHandler<BagType extends FnsBag> implements ITransport<BagType> {
     status: Watchable<TransportStatus> = new Watchable('OPEN' as TransportStatus);
     deviceId: string;
     methods: BagType;
@@ -27,7 +27,7 @@ export class TransportHttpHandler<BagType extends FnsBag> implements ITransport<
     _path: string;
     _outgoingBuffer: Map<string, Envelope<BagType>[]> = new Map(); // keyed by other side's deviceId
 
-    constructor(opts: ITransportHttpHandlerOpts<BagType>) {
+    constructor(opts: ITransportHttpServerHandlerOpts<BagType>) {
         log(`TransportHttpServer constructor: ${opts.deviceId}`);
         this.deviceId = opts.deviceId;
         this.methods = opts.methods;
@@ -73,8 +73,6 @@ export class TransportHttpHandler<BagType extends FnsBag> implements ITransport<
             this._outgoingBuffer.set(otherDeviceId, []);
 
             log('GET: done');
-            // res.json(envsToSend);
-            // return res with json
             return new Response(JSON.stringify(envsToSend), {
                 headers: {
                     'Content-Type': 'application/json',
