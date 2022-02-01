@@ -13,15 +13,16 @@ await build({
     shims: {
         deno: true,
         weakRef: true,
+        undici: true,
         custom: [
             {
                 package: {
-                    name: 'cross-fetch',
-                    version: '~3.1.4',
+                    name: '@sgwilym/urlpattern-polyfill',
+                    version: '1.0.0-rc8',
                 },
                 globalNames: [{
-                    name: 'fetch',
-                    exportName: 'default',
+                    name: 'URLPattern',
+                    exportName: 'URLPattern',
                 }],
             },
             /*
