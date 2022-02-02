@@ -29,12 +29,14 @@ const main = async () => {
         deviceId,
         methods,
     });
-    const conn = transportClient.addConnection(serverUrl);
+    transportClient.addConnection(serverUrl);
 
     while (true) {
+        const conn = [...transportClient.connections][0];
+        const status = (conn === undefined) ? 'RECONNECTING' : conn.status.get();
         log('----------------------------------------');
-        log('|   connection status:', conn.status.get());
-        if (conn.status.get() === 'OPEN') {
+        log('|   connection status:', status);
+        if (status === 'OPEN') {
             log('calling from client to server');
             try {
                 log('|   notify: shouting to server...');

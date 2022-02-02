@@ -8,7 +8,8 @@ import { Connection } from './connection.ts';
 
 import { logTransport as log } from './log.ts';
 
-const TIMEOUT = 2000; // TODO: make this configurable
+const CONNECT_TIMEOUT = 2000; // TODO: make this configurable
+const RECONNECT_TIMEOUT = 2000;
 
 export class TransportWebsocketClient<BagType extends FnsBag> implements ITransport<BagType> {
     status: Watchable<TransportStatus> = new Watchable('OPEN' as TransportStatus);
@@ -69,7 +70,12 @@ export class TransportWebsocketClient<BagType extends FnsBag> implements ITransp
         ws.onerror = (e: Event) => {
             log('>>> ws on error 2');
             conn.status.set('ERROR');
-            throw new RpcErrorNetworkProblem('could not connect');
+            //throw new RpcErrorNetworkProblem('could not connect');
+            log(`could not connect.  retrying in ${RECONNECT_TIMEOUT} ms...`);
+            setTimeout(() => {
+                log('reconnecting');
+                this.addConnection(url);
+            }, RECONNECT_TIMEOUT);
         };
 
         ws.onclose = (e: CloseEvent) => {
@@ -87,7 +93,7 @@ export class TransportWebsocketClient<BagType extends FnsBag> implements ITransp
                 if (conn.isClosed) throw new RpcErrorUseAfterClose('the connection is closed');
                 log(`connection "${conn.description}" is sending an envelope:`, env);
                 log('waiting for OPEN...');
-                await conn.status.waitUntil('OPEN', TIMEOUT);
+                await conn.status.waitUntil('OPEN', CONNECT_TIMEOUT);
                 log('send...');
                 ws.send(JSON.stringify(env));
                 log('...done');
