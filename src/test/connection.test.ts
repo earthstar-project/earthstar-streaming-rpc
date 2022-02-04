@@ -249,7 +249,6 @@ Deno.test('connection behaviour: TransportHttp (w/ Express server)', async (t) =
     app.all('*', function (req, res) {
         serverTransport.expressHandler(req, res);
     });
-
     const server = app.listen(
         1234,
     );
@@ -264,4 +263,6 @@ Deno.test('connection behaviour: TransportHttp (w/ Express server)', async (t) =
     serverTransport.close();
     clientTransport.close();
     server.close();
+
+    await sleep(10);
 });
