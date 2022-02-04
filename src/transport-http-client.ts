@@ -2,7 +2,7 @@ import { FnsBag } from './types-bag.ts';
 import { RpcError, RpcErrorNetworkProblem, RpcErrorUseAfterClose } from './errors.ts';
 import { IConnection, ITransport, ITransportOpts, Thunk, TransportStatus } from './types.ts';
 import { Watchable, WatchableSet } from './watchable.ts';
-import { ensureEndsWith, setImmediate2, sleep, withTimeout } from './util.ts';
+import { ensureEndsWith, fetchWithTimeout, sleep } from './util.ts';
 import { Connection } from './connection.ts';
 
 import { logTransport as log } from './log.ts';
@@ -24,9 +24,11 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
     get isClosed() {
         return this.status.value === 'CLOSED';
     }
+
     onClose(cb: Thunk): Thunk {
         return this.status.onChangeTo('CLOSED', cb);
     }
+
     close(): void {
         if (this.isClosed) return;
 
@@ -58,21 +60,31 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
                 if (conn.isClosed) throw new RpcErrorUseAfterClose('the connection is closed');
                 log(`connection "${conn.description}" is sending an envelope:`, env);
                 log('send...');
+
+                conn.status.set('CONNECTING');
+                const urlToPost = url + `from/${this.deviceId}`;
+                log(`send... POSTing to ${urlToPost}`);
+
+                const { request, cancel: cancelRequest } = fetchWithTimeout(
+                    TIMEOUT,
+                    urlToPost,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify([env]),
+                    },
+                );
+
+                conn.onClose(() => {
+                    cancelRequest();
+                });
+
                 try {
-                    conn.status.set('CONNECTING');
-                    const urlToPost = url + `from/${this.deviceId}`;
-                    log(`send... POSTing to ${urlToPost}`);
-                    const res = await withTimeout(
-                        TIMEOUT,
-                        fetch(urlToPost, {
-                            method: 'POST',
-                            headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify([env]), // a batch of one envelope
-                        }),
-                    );
+                    const res = await request;
+
                     if (!res.ok) {
                         log('send... POST was not ok...');
                         throw new RpcErrorNetworkProblem(
@@ -100,20 +112,34 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
         // PULL
         // Poll for a batch (array) of new envs by HTTP GET and send them to conn.handleIncomingEnvelope
         // This loop ends when conn.status is CLOSED.
-        setImmediate2(async () => {
+        const pull = async () => {
             while (!this.isClosed) {
                 log('----- pull thread...');
                 let sleepTime = QUICK_POLL;
+                if (this.isClosed) return;
+                const urlToGet = url + `for/${this.deviceId}`;
+
+                const { request, cancel: cancelRequest } = fetchWithTimeout(TIMEOUT, urlToGet);
+
+                conn.onClose(() => {
+                    cancelRequest();
+                });
+
                 try {
                     // fetch (with lots of checks for closure happening during a fetch)
-                    if (this.isClosed) return;
-                    const urlToGet = url + `for/${this.deviceId}`;
-                    const response = await withTimeout(TIMEOUT, fetch(urlToGet));
-                    if (this.isClosed) return;
+
+                    const response = await request;
+
+                    if (this.isClosed) {
+                        cancelRequest();
+                        return;
+                    }
+
                     if (!response.ok) {
                         throw new RpcErrorNetworkProblem('pull thread HTTP response was not ok');
                     }
                     const envs = await response.json();
+
                     if (!Array.isArray(envs)) throw new RpcError('expected an array');
                     // poll slower when there's nothing there
                     sleepTime = envs.length >= 1 ? QUICK_POLL : SLOW_POLL;
@@ -126,18 +152,27 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
                         await conn.handleIncomingEnvelope(env);
                     }
                 } catch (error) {
+                    cancelRequest();
                     conn.status.set('ERROR');
                     sleepTime = ERROR_POLL;
                     console.warn('> problem polling for envelopes:', error);
                     // don't re-throw; swallow this error because there's nobody to catch it
                 }
-                if (this.isClosed) return;
+                if (this.isClosed) {
+                    cancelRequest();
+                    return;
+                }
                 log(`sleeping ${sleepTime} ms...`);
                 await sleep(sleepTime);
                 log('...done sleeping.');
-                if (this.isClosed) return;
+                if (this.isClosed) {
+                    cancelRequest();
+                    return;
+                }
             }
-        });
+        };
+
+        pull();
 
         conn.onClose(() => this.connections.delete(conn));
         this.connections.add(conn);

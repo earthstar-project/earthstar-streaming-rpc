@@ -6,6 +6,7 @@ import { Watchable, WatchableSet } from './watchable.ts';
 import { Connection } from './connection.ts';
 
 import { logTransport2 as log } from './log.ts';
+import { type OpineRequest, type OpineResponse } from '../deps.ts';
 
 const KEEP_STALE_CONNECTIONS_FOR = 10 * 1000;
 
@@ -14,7 +15,7 @@ export interface ITransportHttpServerHandlerOpts<BagType extends FnsBag> {
     methods: BagType;
     //streams: { [method: string]: Fn },
 
-    path: string; // url path on server, like '/'
+    path?: string; // url path on server, like '/'
 }
 
 /** A Transport that connects directly to other Transports via HTTP. */
@@ -24,7 +25,7 @@ export class TransportHttpServerHandler<BagType extends FnsBag> implements ITran
     methods: BagType;
     connections: WatchableSet<IConnection<BagType>> = new WatchableSet();
     description: string;
-    _path: string;
+    _path = '/';
     _outgoingBuffer: Map<string, Envelope<BagType>[]> = new Map(); // keyed by other side's deviceId
 
     constructor(opts: ITransportHttpServerHandlerOpts<BagType>) {
@@ -32,9 +33,13 @@ export class TransportHttpServerHandler<BagType extends FnsBag> implements ITran
         this.deviceId = opts.deviceId;
         this.methods = opts.methods;
         this.description = `transport ${opts.deviceId}`;
-        this._path = ensureEndsWith(opts.path, '/');
+
+        if (opts.path) {
+            this._path = ensureEndsWith(opts.path, '/');
+        }
 
         // clean up stale connections after a few seconds of not seeing them
+
         const staleCheckTimer = setInterval(() => {
             log('checking for stale connections');
             const now = Date.now();
@@ -46,10 +51,6 @@ export class TransportHttpServerHandler<BagType extends FnsBag> implements ITran
             }
         }, KEEP_STALE_CONNECTIONS_FOR + 1000);
         this.onClose(() => clearInterval(staleCheckTimer));
-
-        // GET: path/for/:otherDeviceId (outgoing)
-
-        // outgoing
     }
 
     handler = async (req: Request): Promise<Response> => {
@@ -122,6 +123,47 @@ export class TransportHttpServerHandler<BagType extends FnsBag> implements ITran
         });
     };
 
+    expressHandler = async (
+        req: OpineRequest,
+        res: OpineResponse,
+        opts?: { abortController: AbortController },
+    ) => {
+        const origin = `${req.protocol}://${req.get('host')}`;
+        const url = new URL(req.url, origin);
+
+        const init: RequestInit = {
+            method: req.method,
+            headers: createFetchReqHeaders(req.headers),
+            signal: opts?.abortController.signal,
+        };
+
+        if (req.method !== 'GET' && req.method !== 'HEAD') {
+            init.body = JSON.stringify(req.body);
+        }
+
+        const request = new Request(url.href, init);
+
+        const response = await this.handler(request);
+
+        res.setStatus(response.status);
+
+        for (const [key, values] of Object.entries(response.headers)) {
+            for (const value of values) {
+                res.append(key, value);
+            }
+        }
+
+        if (opts?.abortController.signal.aborted) {
+            res.set('Connection', 'close');
+        }
+
+        try {
+            res.send(await response.json());
+        } catch {
+            res.end();
+        }
+    };
+
     _addOrGetConnection(otherDeviceId: string): IConnection<BagType> {
         for (const conn of this.connections) {
             if (conn._otherDeviceId === otherDeviceId) {
@@ -137,12 +179,14 @@ export class TransportHttpServerHandler<BagType extends FnsBag> implements ITran
             transport: this,
             deviceId: this.deviceId,
             methods: this.methods,
-            sendEnvelope: async (conn, env) => {
+            sendEnvelope: (_conn, env) => {
                 // TODO: this should block until the envelope is delivered
                 log('conn.sendEnvelope: adding to outgoing buffer');
                 const buffer = this._outgoingBuffer.get(otherDeviceId) ?? [];
                 buffer.push(env);
                 this._outgoingBuffer.set(otherDeviceId, buffer);
+
+                return Promise.resolve();
             },
         });
         conn._otherDeviceId = otherDeviceId;
@@ -176,4 +220,24 @@ export class TransportHttpServerHandler<BagType extends FnsBag> implements ITran
         this.connections.clear();
         log(`${this.deviceId} | ...closed`);
     }
+}
+
+function createFetchReqHeaders(
+    requestHeaders: OpineRequest['headers'],
+): Headers {
+    const headers = new Headers();
+
+    for (const [key, values] of Object.entries(requestHeaders)) {
+        if (values) {
+            if (Array.isArray(values)) {
+                for (const value of values) {
+                    headers.append(key, value);
+                }
+            } else {
+                headers.set(key, values);
+            }
+        }
+    }
+
+    return headers;
 }

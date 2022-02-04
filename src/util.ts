@@ -1,11 +1,28 @@
 import { RpcErrorTimeout } from './errors.ts';
 
-export const withTimeout = <T>(ms: number, prom: Promise<T>): Promise<T> => {
-    const rejectAfterMs = new Promise((res, rej) => {
-        setTimeout(() => rej(new RpcErrorTimeout()), ms);
-    });
-    return Promise.race([rejectAfterMs, prom]) as Promise<T>;
-};
+export function fetchWithTimeout(
+    timeout: number,
+    input: string | Request | URL,
+    init?: RequestInit | undefined,
+) {
+    const controller = new AbortController();
+
+    const request = fetch(input, { ...init, signal: controller.signal });
+
+    const timeoutId = setTimeout(() => {
+        controller.abort();
+    }, timeout);
+
+    const cancel = () => {
+        if (!controller.signal.aborted) {
+            controller.abort();
+        }
+
+        clearTimeout(timeoutId);
+    };
+
+    return { request, cancel };
+}
 
 export const ensureEndsWith = (s: string, suffix: string) => {
     if (s.endsWith(suffix)) return s;
@@ -72,7 +89,7 @@ export const makeDeferred = <T>(): Deferred<T> => {
 // };
 
 export const sleep = (ms: number): Promise<void> =>
-    new Promise((resolve, reject) => setTimeout(resolve, ms));
+    new Promise((resolve) => setTimeout(resolve, ms));
 
 /** Return a random integer (inclusive of endpoints) */
 export const randInt = (lo: number, hi: number): number =>
