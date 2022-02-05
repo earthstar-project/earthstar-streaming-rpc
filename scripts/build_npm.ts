@@ -4,10 +4,7 @@ await Deno.remove('npm', { recursive: true }).catch((_) => {});
 
 await build({
     entryPoints: [
-        './mod.ts',
-        './examples/example.ts',
-        './examples/example-http-client.ts',
-        './examples/example-http-server.ts',
+        './mod.node.ts',
     ],
     outDir: './npm',
     shims: {
@@ -25,39 +22,27 @@ await build({
                     exportName: 'URLPattern',
                 }],
             },
-            /*
+        ],
+        customDev: [
             {
                 package: {
-                    name: 'web-streams-polyfill',
-                    version: '~3.2.0',
-                },
-                globalNames: [{
-                    name: 'ReadableStream',
-                }],
-            },
-            */
-            {
-                package: {
-                    name: 'express',
+                    name: '@types/express',
                     version: '4.17.2',
                 },
-                typesPackage: {
-                    name: '@types/express',
-                    version: '4.17.13',
-                },
+
                 globalNames: [],
             },
         ],
     },
+    typeCheck: false,
     mappings: {
-        // replace opine with express
-        'https://deno.land/x/opine@2.1.1/mod.ts': {
+        'https://esm.sh/express@4.17.2?dts': {
             name: 'express',
             version: '4.17.2',
         },
     },
     redirects: {
-        './deps.ts': './deps.node.ts',
+        './src/test/scenarios.ts': './src/test/scenarios.node.ts',
     },
     compilerOptions: {
         // ES2020 for Node v14 support
