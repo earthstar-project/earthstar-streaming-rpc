@@ -8,9 +8,7 @@ await build({
     ],
     outDir: './npm',
     shims: {
-        deno: {
-            test: 'dev',
-        },
+        deno: true,
         weakRef: true,
         undici: true,
         custom: [
