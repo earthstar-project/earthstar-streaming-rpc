@@ -1,4 +1,4 @@
-import { build } from 'https://deno.land/x/dnt@0.16.1/mod.ts';
+import { build } from 'https://deno.land/x/dnt@0.17.0/mod.ts';
 
 await Deno.remove('npm', { recursive: true }).catch((_) => {});
 
@@ -34,7 +34,6 @@ await build({
             },
         ],
     },
-    typeCheck: false,
     mappings: {
         'https://esm.sh/express@4.17.2?dts': {
             name: 'express',

@@ -58,6 +58,6 @@ class TransportHttpExpressScenario<BagType extends FnsBag> implements ITransport
 }
 
 export const scenarios = [
-    //TransportLocalScenario,
+    TransportLocalScenario,
     TransportHttpExpressScenario,
 ];
