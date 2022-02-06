@@ -1,17 +1,36 @@
-import { build } from 'https://deno.land/x/dnt@0.17.0/mod.ts';
+import { build, emptyDir } from 'https://deno.land/x/dnt@0.17.0/mod.ts';
 
-await Deno.remove('npm', { recursive: true }).catch((_) => {});
+await emptyDir('npm');
 
 await build({
     entryPoints: [
         './mod.node.ts',
     ],
     outDir: './npm',
+    //typeCheck: false,
     shims: {
         deno: true,
         weakRef: true,
-        undici: true,
         custom: [
+            {
+                package: {
+                    name: 'node-fetch',
+                    version: '2.6.6',
+                },
+                typesPackage: {
+                    name: '@types/node-fetch',
+                    version: '2.5.12',
+                },
+                globalNames: [
+                    { name: 'Headers', exportName: 'Headers' },
+                    {
+                        name: 'fetch',
+                        exportName: 'default',
+                    },
+                    { name: 'Request', exportName: 'Request' },
+                    { name: 'Response', exportName: 'Response' },
+                ],
+            },
             {
                 package: {
                     name: '@sgwilym/urlpattern-polyfill',
@@ -20,6 +39,16 @@ await build({
                 globalNames: [{
                     name: 'URLPattern',
                     exportName: 'URLPattern',
+                }],
+            },
+            {
+                package: {
+                    name: 'node-abort-controller',
+                    version: '3.0.1',
+                },
+                globalNames: [{
+                    name: 'AbortController',
+                    exportName: 'AbortController',
                 }],
             },
         ],

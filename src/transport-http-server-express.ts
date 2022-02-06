@@ -37,7 +37,7 @@ export class TransportHttpServerExpress<BagType extends FnsBag>
             body = JSON.stringify(req.body);
         }
 
-        const init: RequestInit = {
+        const init = {
             method: req.method,
             headers: createFetchReqHeaders(req.headers),
             signal: opts?.abortController.signal,

@@ -1,11 +1,10 @@
-import { RpcErrorTimeout } from './errors.ts';
-
 export function fetchWithTimeout(
     timeout: number,
-    input: string | Request | URL,
-    init?: RequestInit | undefined,
+    ...args: Parameters<typeof fetch>
 ) {
     const controller = new AbortController();
+
+    const [input, init] = args;
 
     const request = fetch(input, { ...init, signal: controller.signal });
 
