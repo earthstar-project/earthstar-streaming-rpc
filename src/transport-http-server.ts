@@ -55,7 +55,7 @@ export class TransportHttpServer<BagType extends FnsBag> implements ITransport<B
         const outgoingUrlPattern = new URLPattern({ pathname: `${this._path}for/:otherDeviceId` });
         const incomingUrlPattern = new URLPattern({ pathname: `${this._path}from/:otherDeviceId` });
 
-        if (outgoingUrlPattern.test(req.url)) {
+        if (outgoingUrlPattern.test(req.url) && req.method === 'GET') {
             const otherDeviceId =
                 outgoingUrlPattern.exec(req.url)?.pathname.groups['otherDeviceId'];
             log('GET: (outgoing) for device', otherDeviceId);
@@ -76,7 +76,7 @@ export class TransportHttpServer<BagType extends FnsBag> implements ITransport<B
                     'Content-Type': 'application/json; charset=utf-8',
                 },
             });
-        } else if (incomingUrlPattern.test(req.url)) {
+        } else if (incomingUrlPattern.test(req.url) && req.method === 'POST') {
             const otherDeviceId =
                 incomingUrlPattern.exec(req.url)?.pathname.groups['otherDeviceId'];
             log('POST: (incoming) from device', otherDeviceId);
@@ -129,6 +129,7 @@ export class TransportHttpServer<BagType extends FnsBag> implements ITransport<B
                 return conn;
             }
         }
+
         log('Connection does not exist already.  Making a new one.');
         const conn = new Connection({
             description: `connection to ${otherDeviceId}`,
@@ -138,7 +139,9 @@ export class TransportHttpServer<BagType extends FnsBag> implements ITransport<B
             sendEnvelope: (_conn, env) => {
                 // TODO: this should block until the envelope is delivered
                 log('conn.sendEnvelope: adding to outgoing buffer');
+
                 const buffer = this._outgoingBuffer.get(otherDeviceId) ?? [];
+
                 buffer.push(env);
                 this._outgoingBuffer.set(otherDeviceId, buffer);
 

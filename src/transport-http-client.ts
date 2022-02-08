@@ -2,7 +2,7 @@ import { FnsBag } from './types-bag.ts';
 import { RpcError, RpcErrorNetworkProblem, RpcErrorUseAfterClose } from './errors.ts';
 import { IConnection, ITransport, ITransportOpts, Thunk, TransportStatus } from './types.ts';
 import { Watchable, WatchableSet } from './watchable.ts';
-import { ensureEndsWith, fetchWithTimeout, sleep } from './util.ts';
+import { ensureEndsWith, fetchWithTimeout } from './util.ts';
 import { Connection } from './connection.ts';
 
 import { logTransport as log } from './log.ts';
@@ -14,6 +14,7 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
     deviceId: string;
     methods: BagType;
     connections: WatchableSet<IConnection<BagType>> = new WatchableSet();
+    _pullReschedules: Map<string, (ms?: number) => void> = new Map();
 
     constructor(opts: ITransportOpts<BagType>) {
         log('constructor for device', opts.deviceId);
@@ -92,6 +93,17 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
                         );
                     } else {
                         log('send... success.');
+
+                        // cancel current pull timers for this connection
+                        // and pull again!
+
+                        const cancelPollAndRetry = this._pullReschedules.get(conn.description);
+
+                        if (cancelPollAndRetry) {
+                            log(`Rescheduling next pull to right now!`);
+                            cancelPollAndRetry();
+                        }
+
                         conn.status.set('OPEN');
                     }
                 } catch (error) {
@@ -112,69 +124,86 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
         // PULL
         // Poll for a batch (array) of new envs by HTTP GET and send them to conn.handleIncomingEnvelope
         // This loop ends when conn.status is CLOSED.
-        const pull = async () => {
-            while (!this.isClosed) {
-                log('----- pull thread...');
-                let sleepTime = QUICK_POLL;
-                if (this.isClosed) return;
-                const urlToGet = url + `for/${this.deviceId}`;
+        const pull = () => {
+            log('----- pull thread...');
 
-                const { request, cancel: cancelRequest } = fetchWithTimeout(TIMEOUT, urlToGet);
+            if (this.isClosed) return () => {};
+            const urlToGet = url + `for/${this.deviceId}`;
 
-                conn.onClose(() => {
-                    cancelRequest();
-                });
+            const { request, cancel: cancelRequest } = fetchWithTimeout(TIMEOUT, urlToGet);
+
+            conn.onClose(() => {
+                cancelRequest();
+            });
+
+            request.then(async (response) => {
+                const reschedule = this._pullReschedules.get(conn.description);
 
                 try {
-                    // fetch (with lots of checks for closure happening during a fetch)
-
-                    const response = await request;
-
                     if (this.isClosed) {
-                        cancelRequest();
                         return;
                     }
 
                     if (!response.ok) {
                         throw new RpcErrorNetworkProblem('pull thread HTTP response was not ok');
                     }
+
                     const envs = await response.json();
 
                     if (!Array.isArray(envs)) throw new RpcError('expected an array');
                     // poll slower when there's nothing there
-                    sleepTime = envs.length >= 1 ? QUICK_POLL : SLOW_POLL;
+
+                    //sleepTime = envs.length >= 1 ? QUICK_POLL : SLOW_POLL;
+                    if (reschedule) {
+                        const nextPoll = envs.length >= 1 ? QUICK_POLL : SLOW_POLL;
+                        log(`Rescheduling next pull in ${nextPoll}ms...`);
+                        reschedule(nextPoll);
+                    }
 
                     // pass envelopes to the connection to handle one at a time
                     conn.status.set('OPEN');
                     log(`got ${envs.length} envelopes`);
                     for (const env of envs) {
-                        if (this.isClosed) return;
+                        if (this.isClosed) return () => {};
                         await conn.handleIncomingEnvelope(env);
                     }
                 } catch (error) {
-                    cancelRequest();
                     conn.status.set('ERROR');
-                    sleepTime = ERROR_POLL;
+                    if (reschedule) {
+                        log(`Rescheduling next pull in ${ERROR_POLL}ms...`);
+                        reschedule(ERROR_POLL);
+                    }
+
                     console.warn('> problem polling for envelopes:', error);
                     // don't re-throw; swallow this error because there's nobody to catch it
                 }
-                if (this.isClosed) {
-                    cancelRequest();
-                    return;
-                }
-                log(`sleeping ${sleepTime} ms...`);
-                await sleep(sleepTime);
-                log('...done sleeping.');
-                if (this.isClosed) {
-                    cancelRequest();
-                    return;
-                }
-            }
+            });
+
+            const nextPoll = setTimeout(pull, SLOW_POLL);
+
+            conn.onClose(() => {
+                clearTimeout(nextPoll);
+            });
+
+            const reschedule = (ms?: number) => {
+                //cancelRequest();
+                clearTimeout(nextPoll);
+                const pullTimer = setTimeout(pull, ms);
+
+                conn.onClose(() => {
+                    clearTimeout(pullTimer);
+                });
+            };
+
+            this._pullReschedules.set(conn.description, reschedule);
         };
 
         pull();
 
-        conn.onClose(() => this.connections.delete(conn));
+        conn.onClose(() => {
+            this.connections.delete(conn);
+        });
+
         this.connections.add(conn);
         return conn;
     }
