@@ -15,11 +15,10 @@ export function fetchWithTimeout(
     }, timeout);
 
     const cancel = () => {
+        clearTimeout(timeoutId);
         if (!controller.signal.aborted) {
             controller.abort();
         }
-
-        clearTimeout(timeoutId);
     };
 
     return { request, cancel };

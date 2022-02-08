@@ -177,6 +177,9 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
                     console.warn('> problem polling for envelopes:', error);
                     // don't re-throw; swallow this error because there's nobody to catch it
                 }
+            }).catch(() => {
+                // The request may have been cancelled by us.
+                // We'll just catch the aborted error here.
             });
 
             const nextPoll = setTimeout(pull, SLOW_POLL);
