@@ -11,6 +11,7 @@ await build({
     shims: {
         deno: true,
         weakRef: true,
+        timers: true,
         custom: [
             {
                 package: {
