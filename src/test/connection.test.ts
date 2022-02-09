@@ -12,7 +12,7 @@ async function testConnectionNotify(
     e: EventLog,
 ) {
     await t.step({
-        name: 'notify',
+        name: `notify + ${scenario.name}`,
         // There may be async ops on the client and server
         sanitizeOps: false,
         sanitizeResources: false,
@@ -27,7 +27,7 @@ async function testConnectionNotify(
     });
 
     await t.step({
-        name: 'notify eith error',
+        name: `notify eith error + ${scenario.name}`,
         // There may be async ops on the client and server
         sanitizeOps: false,
         sanitizeResources: false,
@@ -63,7 +63,7 @@ async function testConnectionRequestResponse(
     e: EventLog,
 ) {
     await t.step({
-        name: 'request-response',
+        name: `request-response + ${scenario.name}`,
         // There may be async ops on the client and server
         sanitizeOps: false,
         sanitizeResources: false,
@@ -76,7 +76,7 @@ async function testConnectionRequestResponse(
     });
 
     await t.step({
-        name: 'request-response with error',
+        name: `request-response with error  + ${scenario.name}`,
         // There may be async ops on the client and server
         sanitizeOps: false,
         sanitizeResources: false,
@@ -107,7 +107,7 @@ async function testClosingConnection(
     scenario: ITransportScenario<ReturnType<typeof makeObservedMethods>>,
 ) {
     await t.step({
-        name: 'closing things',
+        name: `closing things + ${scenario.name}`,
         // There may be async ops on the client and server
         sanitizeOps: false,
         sanitizeResources: false,

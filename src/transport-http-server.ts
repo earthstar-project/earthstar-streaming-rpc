@@ -102,6 +102,7 @@ export class TransportHttpServer<BagType extends FnsBag> implements ITransport<B
                     // TODO: fix: if this throws an error it will skip the rest of the envelopes
                     await conn.handleIncomingEnvelope(env);
                 }
+
                 log('POST: done');
                 return new Response('ok', {
                     status: 200,

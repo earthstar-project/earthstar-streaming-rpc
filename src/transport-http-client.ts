@@ -15,6 +15,7 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
     methods: BagType;
     connections: WatchableSet<IConnection<BagType>> = new WatchableSet();
     _pullReschedules: Map<string, (ms?: number) => void> = new Map();
+    _scheduledPolls: Map<string, number> = new Map();
 
     constructor(opts: ITransportOpts<BagType>) {
         log('constructor for device', opts.deviceId);
@@ -40,6 +41,7 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
         for (const conn of this.connections) {
             conn.close();
         }
+
         this.connections.clear();
         log('...closed');
     }
@@ -86,6 +88,8 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
                 try {
                     const res = await request;
 
+                    if (this.isClosed) return;
+
                     if (!res.ok) {
                         log('send... POST was not ok...');
                         throw new RpcErrorNetworkProblem(
@@ -100,7 +104,6 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
                         const cancelPollAndRetry = this._pullReschedules.get(conn.description);
 
                         if (cancelPollAndRetry) {
-                            log(`Rescheduling next pull to right now!`);
                             cancelPollAndRetry();
                         }
 
@@ -127,22 +130,16 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
         const pull = () => {
             log('----- pull thread...');
 
-            if (this.isClosed) return () => {};
+            if (this.isClosed) return;
             const urlToGet = url + `for/${this.deviceId}`;
 
             const { request, cancel: cancelRequest } = fetchWithTimeout(TIMEOUT, urlToGet);
-
-            conn.onClose(() => {
-                cancelRequest();
-            });
 
             request.then(async (response) => {
                 const reschedule = this._pullReschedules.get(conn.description);
 
                 try {
-                    if (this.isClosed) {
-                        return;
-                    }
+                    if (this.isClosed) return;
 
                     if (!response.ok) {
                         throw new RpcErrorNetworkProblem('pull thread HTTP response was not ok');
@@ -150,13 +147,15 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
 
                     const envs = await response.json();
 
+                    if (this.isClosed) return;
+
                     if (!Array.isArray(envs)) throw new RpcError('expected an array');
                     // poll slower when there's nothing there
 
                     //sleepTime = envs.length >= 1 ? QUICK_POLL : SLOW_POLL;
                     if (reschedule) {
                         const nextPoll = envs.length >= 1 ? QUICK_POLL : SLOW_POLL;
-                        log(`Rescheduling next pull in ${nextPoll}ms...`);
+
                         reschedule(nextPoll);
                     }
 
@@ -168,6 +167,8 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
                         await conn.handleIncomingEnvelope(env);
                     }
                 } catch (error) {
+                    if (this.isClosed) return;
+
                     if (
                         error instanceof DOMException &&
                         error.message === 'The signal has been aborted'
@@ -177,7 +178,6 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
 
                     conn.status.set('ERROR');
                     if (reschedule) {
-                        log(`Rescheduling next pull in ${ERROR_POLL}ms...`);
                         reschedule(ERROR_POLL);
                     }
 
@@ -189,14 +189,19 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
                 // We'll just catch the aborted error here.
             });
 
-            const nextPoll = setTimeout(pull, SLOW_POLL);
+            const nextPoll = setTimeout(() => {
+                log(`Polled a pull on ${conn.description}`);
+                pull();
+            }, SLOW_POLL);
 
             conn.onClose(() => {
                 clearTimeout(nextPoll);
+                cancelRequest();
             });
 
-            const reschedule = (ms?: number) => {
-                //cancelRequest();
+            const nextReschedule = (ms?: number) => {
+                log(`Rescheduling next pull ${ms ? `in ${ms}ms` : 'immediately'}...`);
+
                 clearTimeout(nextPoll);
                 const pullTimer = setTimeout(pull, ms);
 
@@ -205,7 +210,13 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
                 });
             };
 
-            this._pullReschedules.set(conn.description, reschedule);
+            const prevPoll = this._scheduledPolls.get(conn.description);
+            clearTimeout(prevPoll);
+            this._scheduledPolls.set(conn.description, nextPoll);
+
+            this._pullReschedules.set(conn.description, nextReschedule);
+
+            log(`Set up pull for ${conn.description}`);
         };
 
         pull();
