@@ -168,6 +168,13 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
                         await conn.handleIncomingEnvelope(env);
                     }
                 } catch (error) {
+                    if (
+                        error instanceof DOMException &&
+                        error.message === 'The signal has been aborted'
+                    ) {
+                        return;
+                    }
+
                     conn.status.set('ERROR');
                     if (reschedule) {
                         log(`Rescheduling next pull in ${ERROR_POLL}ms...`);
