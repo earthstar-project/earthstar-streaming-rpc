@@ -8,10 +8,12 @@ import { Connection } from './connection.ts';
 import { logTransport as log } from './log.ts';
 
 type TransportMessage<BagType extends FnsBag> = {
+    forDeviceId: string;
     envelope: Envelope<BagType>;
 } | { deviceId: string };
 
 function isEnvelopeMessage<BagType extends FnsBag>(message: TransportMessage<BagType>): message is {
+    forDeviceId: string;
     envelope: Envelope<BagType>;
 } {
     if ('envelope' in message) {
@@ -41,9 +43,10 @@ export class TransportBroadcastChannel<BagType extends FnsBag> implements ITrans
 
         const onEvent = (event: MessageEvent<TransportMessage<BagType>>) => {
             if (isEnvelopeMessage(event.data)) {
-                const connection = this._addOrGetConnection(event.data.envelope.fromDeviceId);
-
-                connection.handleIncomingEnvelope(event.data.envelope);
+                if (event.data.forDeviceId === this.deviceId) {
+                    const connection = this._addOrGetConnection(event.data.envelope.fromDeviceId);
+                    connection.handleIncomingEnvelope(event.data.envelope);
+                }
 
                 return;
             }
@@ -110,7 +113,7 @@ export class TransportBroadcastChannel<BagType extends FnsBag> implements ITrans
 
                 conn.status.set('CONNECTING');
 
-                this._channel.postMessage({ envelope });
+                this._channel.postMessage({ envelope, forDeviceId: otherDeviceId });
 
                 return Promise.resolve();
             },
