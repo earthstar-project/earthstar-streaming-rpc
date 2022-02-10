@@ -1,154 +1,149 @@
 import { assert, assertEquals } from './asserts.ts';
-import { IConnection, ITransport } from '../types.ts';
-import { FnsBag } from '../types-bag.ts';
-import { makeLocalTransportPair } from '../transport-local.ts';
-
-import { sleep } from '../util.ts';
+import { makeObservedMethods } from './test-methods.ts';
 import { EventLog } from './event-log.ts';
+import { scenarios } from './scenarios.ts';
+import { ITransportScenario } from './scenario-types.ts';
 
 //================================================================================
 
-const makeObservedMethods = (e: EventLog) => {
-    return {
-        add: (a: number, b: number) => {
-            e.observe(`$${a} + ${b} = ${a + b}`);
-            return a + b;
-        },
-        addAsync: async (a: number, b: number) => {
-            await sleep(10);
-            e.observe(`async: $${a} + ${b} = ${a + b}`);
-            await sleep(10);
-            return a + b;
-        },
-        shout: (s: string) => {
-            e.observe('shout: ' + s.toLocaleUpperCase());
-        },
-        shoutAsync: async (s: string) => {
-            await sleep(10);
-            e.observe('shoutAsync: ' + s.toLocaleUpperCase());
-            await sleep(10);
-        },
-        alwaysError: (msg: string) => {
-            e.observe(`alwaysError: ${msg}`);
-            throw new Error(msg);
-        },
-    };
-};
-
 async function testConnectionNotify(
     t: Deno.TestContext,
-    conn: IConnection<ReturnType<typeof makeObservedMethods>>,
+    scenario: ITransportScenario<ReturnType<typeof makeObservedMethods>>,
     e: EventLog,
 ) {
-    await t.step('notify', async () => {
-        e.clear();
-        e.note('about to shout');
-        await conn.notify('shout', 'hello');
-        e.expect('shout: \'HELLO\'');
-        e.note('shouted');
-        await conn.notify('shoutAsync', 'hello');
+    await t.step({
+        name: `notify + ${scenario.name}`,
+        // There may be async ops on the client and server
+        sanitizeOps: false,
+        sanitizeResources: false,
+        fn: async () => {
+            e.clear();
+            e.note('about to shout');
+            await scenario.connAtoB.notify('shout', 'hello');
+            e.expect('shout: \'HELLO\'');
+            e.note('shouted');
+            await scenario.connAtoB.notify('shoutAsync', 'hello');
+        },
     });
 
-    await t.step('notify eith error', async () => {
-        // When notify's method has an error, it should be swallowed and not returned to us
-        // because notify is not supposed to return anything.
-        // This will show as a console.warn but that's expected.
+    await t.step({
+        name: `notify eith error + ${scenario.name}`,
+        // There may be async ops on the client and server
+        sanitizeOps: false,
+        sanitizeResources: false,
+        fn: async () => {
+            // When notify's method has an error, it should be swallowed and not returned to us
+            // because notify is not supposed to return anything.
+            // This will show as a console.warn but that's expected.
 
-        // error in the method call (no such method
-        try {
-            await conn.notify('nosuch' as unknown as keyof typeof makeObservedMethods);
-            assert(true, 'notify should not return errors');
-        } catch (error) {
-            assert(false, 'notify should not return errors');
-        }
+            // error in the method call (no such method)
+            try {
+                await scenario.connAtoB.notify(
+                    'nosuch' as unknown as keyof typeof makeObservedMethods,
+                );
+                assert(true, 'notify should not return errors');
+            } catch {
+                assert(false, 'notify should not return errors');
+            }
 
-        // error in the method
-        try {
-            await conn.notify('alwaysError', 'Error!');
-            assert(true, 'notify should not return errors');
-        } catch (error) {
-            assert(false, 'notify should not return errors');
-        }
+            // error in the method
+            try {
+                await scenario.connAtoB.notify('alwaysError', 'Error!');
+                assert(true, 'notify should not return errors');
+            } catch {
+                assert(false, 'notify should not return errors');
+            }
+        },
     });
 }
 
 async function testConnectionRequestResponse(
     t: Deno.TestContext,
-    conn: IConnection<ReturnType<typeof makeObservedMethods>>,
+    scenario: ITransportScenario<ReturnType<typeof makeObservedMethods>>,
     e: EventLog,
 ) {
-    await t.step('request-response', async () => {
-        const three = await conn.request('add', 1, 2);
-        assertEquals(three, 3, 'conn.request returns correct answer');
-        const threeAsync = await conn.request('addAsync', 1, 2);
-        assertEquals(threeAsync, 3, 'conn.request returns correct answer');
+    await t.step({
+        name: `request-response + ${scenario.name}`,
+        // There may be async ops on the client and server
+        sanitizeOps: false,
+        sanitizeResources: false,
+        fn: async () => {
+            const three = await scenario.connAtoB.request('add', 1, 2);
+            assertEquals(three, 3, 'conn.request returns correct answer');
+            const threeAsync = await scenario.connAtoB.request('addAsync', 1, 2);
+            assertEquals(threeAsync, 3, 'conn.request returns correct answer');
+        },
     });
 
-    await t.step('request-response with error', async () => {
-        // error in the method call (no such method)
-        try {
-            const three = await conn.request(
-                'nosuch' as unknown as keyof typeof makeObservedMethods,
-            );
-            assert(false, 'should catch error from unknown method call');
-        } catch (error) {
-            assert(true, 'should catch error from unknown method call');
-        }
+    await t.step({
+        name: `request-response with error  + ${scenario.name}`,
+        // There may be async ops on the client and server
+        sanitizeOps: false,
+        sanitizeResources: false,
+        fn: async () => {
+            // error in the method call (no such method)
+            try {
+                const three = await scenario.connAtoB.request(
+                    'nosuch' as unknown as keyof typeof makeObservedMethods,
+                );
+                assert(false, 'should catch error from unknown method call');
+            } catch (error) {
+                assert(true, 'should catch error from unknown method call');
+            }
 
-        // error in the method
-        try {
-            const three = await conn.request('alwaysError', 'Error!');
-            assert(false, 'should catch error from method call');
-        } catch (error) {
-            assert(true, 'should catch error from method call');
-        }
+            // error in the method
+            try {
+                const three = await scenario.connAtoB.request('alwaysError', 'Error!');
+                assert(false, 'should catch error from method call');
+            } catch (error) {
+                assert(true, 'should catch error from method call');
+            }
+        },
     });
 }
 
-async function testClosingConnection<BagType extends FnsBag>(
+async function testClosingConnection(
     t: Deno.TestContext,
-    connAtoB: IConnection<BagType>,
-    connBtoA: IConnection<BagType>,
-    transA: ITransport<BagType>,
-    transB: ITransport<BagType>,
+    scenario: ITransportScenario<ReturnType<typeof makeObservedMethods>>,
 ) {
-    await t.step('closing things', () => {
-        assert(!transA.isClosed, 'transA is not closed yet');
-        assert(!transB.isClosed, 'transB is not closed yet');
-        assert(!connAtoB.isClosed, 'connAtoB is not closed yet');
-        assert(!connBtoA.isClosed, 'connBtoA is not closed yet');
+    await t.step({
+        name: `closing things + ${scenario.name}`,
+        // There may be async ops on the client and server
+        sanitizeOps: false,
+        sanitizeResources: false,
+        fn: () => {
+            assert(!scenario.clientTransport.isClosed, 'clientTransport is not closed yet');
+            assert(!scenario.serverTransport.isClosed, 'serverTransport is not closed yet');
+            assert(!scenario.connAtoB.isClosed, 'connAtoB is not closed yet');
+            assert(!scenario.connBtoA?.isClosed, 'connBtoA is not closed yet');
 
-        // close one side of the connection, the other side closes, but not the transport
-        connAtoB.close();
-        assert(!transA.isClosed, 'transA is not closed yet');
-        assert(!transB.isClosed, 'transB is not closed yet');
-        assert(connAtoB.isClosed, 'connAtoB is closed');
-        assert(connBtoA.isClosed, 'connBtoA is closed');
+            // close one side of the connection, the other side closes, but not the transport
+            scenario.connAtoB.close();
+            assert(!scenario.clientTransport.isClosed, 'clientTransport is not closed yet');
+            assert(!scenario.serverTransport.isClosed, 'serverTransport is not closed yet');
+            assert(scenario.connAtoB.isClosed, 'connAtoB is closed');
 
-        transA.close();
-        transB.close();
-        assert(transA.isClosed, 'transA is closed');
-        assert(transB.isClosed, 'transB is closed');
+            //TODO: We need a way to close connections remotely?
+            //assert(connBtoA.isClosed, 'connBtoA is closed');
+
+            scenario.clientTransport.close();
+            scenario.serverTransport.close();
+            assert(scenario.clientTransport.isClosed, 'clientTransport is closed');
+            assert(scenario.serverTransport.isClosed, 'serverTransport is closed');
+        },
     });
 }
 
-Deno.test('connection behaviour: TransportLocal', async (t) => {
-    //----------------------------------------
-    // set the stage
+Deno.test('connection behaviour', async (t) => {
+    const eventLog = new EventLog();
+    const methods = makeObservedMethods(eventLog);
 
-    const e = new EventLog();
-    const methods = makeObservedMethods(e);
-    const {
-        transA,
-        transB,
-        thisConn: connAtoB,
-        otherConn: connBtoA,
-    } = makeLocalTransportPair(methods);
+    for await (const Scenario of scenarios) {
+        const scenarioInst = new Scenario(methods);
 
-    //----------------------------------------
-    // run the tests
-
-    await testConnectionNotify(t, connAtoB, e);
-    await testConnectionRequestResponse(t, connAtoB, e);
-    await testClosingConnection(t, connAtoB, connBtoA, transA, transB);
+        await testConnectionNotify(t, scenarioInst, eventLog);
+        await testConnectionRequestResponse(t, scenarioInst, eventLog);
+        await testClosingConnection(t, scenarioInst);
+        await scenarioInst.teardown();
+    }
 });

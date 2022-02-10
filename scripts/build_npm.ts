@@ -1,62 +1,77 @@
-import { build } from 'https://deno.land/x/dnt@0.16.1/mod.ts';
+import { build, emptyDir } from 'https://deno.land/x/dnt@0.17.0/mod.ts';
 
-await Deno.remove('npm', { recursive: true }).catch((_) => {});
+await emptyDir('npm');
 
 await build({
     entryPoints: [
-        './mod.ts',
-        './examples/example.ts',
-        './examples/example-http-client.ts',
-        './examples/example-http-server.ts',
+        './mod.node.ts',
     ],
     outDir: './npm',
+    //typeCheck: false,
     shims: {
         deno: true,
         weakRef: true,
+        timers: true,
         custom: [
             {
                 package: {
-                    name: 'cross-fetch',
-                    version: '~3.1.4',
-                },
-                globalNames: [{
-                    name: 'fetch',
-                    exportName: 'default',
-                }],
-            },
-            /*
-            {
-                package: {
-                    name: 'web-streams-polyfill',
-                    version: '~3.2.0',
-                },
-                globalNames: [{
-                    name: 'ReadableStream',
-                }],
-            },
-            */
-            {
-                package: {
-                    name: 'express',
-                    version: '4.17.2',
+                    name: 'node-fetch',
+                    version: '2.6.6',
                 },
                 typesPackage: {
-                    name: '@types/express',
-                    version: '4.17.13',
+                    name: '@types/node-fetch',
+                    version: '2.5.12',
                 },
+                globalNames: [
+                    { name: 'Headers', exportName: 'Headers' },
+                    {
+                        name: 'fetch',
+                        exportName: 'default',
+                    },
+                    { name: 'Request', exportName: 'Request' },
+                    { name: 'Response', exportName: 'Response' },
+                ],
+            },
+            {
+                package: {
+                    name: '@sgwilym/urlpattern-polyfill',
+                    version: '1.0.0-rc8',
+                },
+                globalNames: [{
+                    name: 'URLPattern',
+                    exportName: 'URLPattern',
+                }],
+            },
+            {
+                package: {
+                    name: 'node-abort-controller',
+                    version: '3.0.1',
+                },
+                globalNames: [{
+                    name: 'AbortController',
+                    exportName: 'AbortController',
+                }],
+            },
+        ],
+        customDev: [
+            {
+                package: {
+                    name: '@types/express',
+                    version: '4.17.2',
+                },
+
                 globalNames: [],
             },
         ],
     },
     mappings: {
-        // replace opine with express
-        'https://deno.land/x/opine@2.1.1/mod.ts': {
+        'https://esm.sh/express@4.17.2?dts': {
             name: 'express',
             version: '4.17.2',
         },
     },
     redirects: {
-        './deps.ts': './deps.node.ts',
+        './src/test/scenarios.ts': './src/test/scenarios.node.ts',
     },
     compilerOptions: {
         // ES2020 for Node v14 support

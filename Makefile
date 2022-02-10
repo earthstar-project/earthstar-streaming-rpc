@@ -13,10 +13,10 @@ lint:
 	deno lint --rules-exclude=no-explicit-any,no-unused-vars,no-empty,no-inferrable-types,require-await *.ts scripts src
 
 test:
-	deno test -A --no-check=remote --unstable src
+	deno test -A --no-check=remote --allow-net --unstable src
 
 test-watch:
-	deno test -A --no-check=remote --unstable --watch src
+	deno test -A --no-check=remote --allow-net --unstable --watch src
 
 test-coverage:
 	deno test -A --no-check=remote --unstable --coverage=cov_profile src

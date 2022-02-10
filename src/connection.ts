@@ -29,7 +29,7 @@ export class Connection<BagType extends FnsBag> implements IConnection<BagType> 
     _methods: BagType;
     _sendEnvelope: (conn: IConnection<BagType>, env: Envelope<BagType>) => Promise<void>;
     _deferredRequests: Map<string, Deferred<any>> = new Map(); // keyed by env id
-    _lastSeen: number = 0;
+    _lastSeen = 0;
 
     constructor(opts: ConnectionOpts<BagType>) {
         log(`Connection constructor: ${opts.deviceId} "${opts.description}"`);

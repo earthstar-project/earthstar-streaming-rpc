@@ -7,29 +7,23 @@ import { Connection } from './connection.ts';
 
 import { logTransport2 as log } from './log.ts';
 
-import type { Opine } from '../deps.ts';
-
-const TIMEOUT = 1000; // TODO: make this configurable
 const KEEP_STALE_CONNECTIONS_FOR = 10 * 1000;
 
 export interface ITransportHttpServerOpts<BagType extends FnsBag> {
     deviceId: string; // id of this device
     methods: BagType;
     //streams: { [method: string]: Fn },
-    app: Opine;
-    path: string; // url path on server, like '/'
+    path?: string; // url path on server, like '/'
 }
 
-/** A Transport that connects directly to other Transports via HTTP. */
+/** A Transport that is able to receive and respond to HTTP requests. */
 export class TransportHttpServer<BagType extends FnsBag> implements ITransport<BagType> {
     status: Watchable<TransportStatus> = new Watchable('OPEN' as TransportStatus);
     deviceId: string;
     methods: BagType;
     connections: WatchableSet<IConnection<BagType>> = new WatchableSet();
     description: string;
-
-    _app: Opine;
-    _path: string;
+    _path = '/';
     _outgoingBuffer: Map<string, Envelope<BagType>[]> = new Map(); // keyed by other side's deviceId
 
     constructor(opts: ITransportHttpServerOpts<BagType>) {
@@ -37,10 +31,13 @@ export class TransportHttpServer<BagType extends FnsBag> implements ITransport<B
         this.deviceId = opts.deviceId;
         this.methods = opts.methods;
         this.description = `transport ${opts.deviceId}`;
-        this._app = opts.app;
-        this._path = ensureEndsWith(opts.path, '/');
+
+        if (opts.path) {
+            this._path = ensureEndsWith(opts.path, '/');
+        }
 
         // clean up stale connections after a few seconds of not seeing them
+
         const staleCheckTimer = setInterval(() => {
             log('checking for stale connections');
             const now = Date.now();
@@ -52,46 +49,78 @@ export class TransportHttpServer<BagType extends FnsBag> implements ITransport<B
             }
         }, KEEP_STALE_CONNECTIONS_FOR + 1000);
         this.onClose(() => clearInterval(staleCheckTimer));
+    }
 
-        // outgoing
-        this._app.get(this._path + 'for/:otherDeviceId', (req, res) => {
-            const otherDeviceId = req.params.otherDeviceId;
+    /** Processes HTTP requests from TransportHttpClient and returns the appropriate response. */
+    handler = async (req: Request): Promise<Response> => {
+        const outgoingUrlPattern = new URLPattern({ pathname: `${this._path}for/:otherDeviceId` });
+        const incomingUrlPattern = new URLPattern({ pathname: `${this._path}from/:otherDeviceId` });
+
+        if (outgoingUrlPattern.test(req.url) && req.method === 'GET') {
+            const otherDeviceId =
+                outgoingUrlPattern.exec(req.url)?.pathname.groups['otherDeviceId'];
             log('GET: (outgoing) for device', otherDeviceId);
-            if (this.isClosed) res.sendStatus(404);
 
-            const conn = this._addOrGetConnection(otherDeviceId);
+            if (!otherDeviceId || this.isClosed) {
+                return new Response('Not Found', {
+                    status: 404,
+                });
+            }
 
             const envsToSend = this._outgoingBuffer.get(otherDeviceId) ?? [];
             log(`GET: sending ${envsToSend.length} envelopes`);
             this._outgoingBuffer.set(otherDeviceId, []);
-            res.json(envsToSend);
-            log('GET: done');
-        });
 
-        // incoming
-        this._app.post(this._path + 'from/:otherDeviceId', async (req, res) => {
-            const otherDeviceId = req.params.otherDeviceId;
+            log('GET: done');
+            return new Response(JSON.stringify(envsToSend), {
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8',
+                },
+            });
+        } else if (incomingUrlPattern.test(req.url) && req.method === 'POST') {
+            const otherDeviceId =
+                incomingUrlPattern.exec(req.url)?.pathname.groups['otherDeviceId'];
             log('POST: (incoming) from device', otherDeviceId);
-            if (this.isClosed) res.sendStatus(404);
+            if (!otherDeviceId || this.isClosed) {
+                return new Response('Not Found', {
+                    status: 404,
+                });
+            }
 
             const conn = this._addOrGetConnection(otherDeviceId);
 
             try {
-                const envs = req.body as Envelope<BagType>[];
-                if (!envs || !Array.isArray(envs)) res.sendStatus(400);
+                const bodyJson = await req.json();
+
+                const envs = bodyJson as Envelope<BagType>[];
+                if (!envs || !Array.isArray(envs)) {
+                    return new Response('Not Found', {
+                        status: 404,
+                    });
+                }
                 log(`POST: received ${envs.length} envelopes; handling them with the Connection...`);
                 for (const env of envs) {
                     // TODO: fix: if this throws an error it will skip the rest of the envelopes
                     await conn.handleIncomingEnvelope(env);
                 }
-                res.sendStatus(200);
+
                 log('POST: done');
+                return new Response('ok', {
+                    status: 200,
+                });
             } catch (error) {
                 log('server error:', error);
                 console.warn('> error in server handler for incoming envelopes', error);
+                return new Response('Server error', {
+                    status: 500,
+                });
             }
+        }
+
+        return new Response('Not found', {
+            status: 404,
         });
-    }
+    };
 
     _addOrGetConnection(otherDeviceId: string): IConnection<BagType> {
         for (const conn of this.connections) {
@@ -102,18 +131,23 @@ export class TransportHttpServer<BagType extends FnsBag> implements ITransport<B
                 return conn;
             }
         }
+
         log('Connection does not exist already.  Making a new one.');
         const conn = new Connection({
             description: `connection to ${otherDeviceId}`,
             transport: this,
             deviceId: this.deviceId,
             methods: this.methods,
-            sendEnvelope: async (conn, env) => {
+            sendEnvelope: (_conn, env) => {
                 // TODO: this should block until the envelope is delivered
                 log('conn.sendEnvelope: adding to outgoing buffer');
+
                 const buffer = this._outgoingBuffer.get(otherDeviceId) ?? [];
+
                 buffer.push(env);
                 this._outgoingBuffer.set(otherDeviceId, buffer);
+
+                return Promise.resolve();
             },
         });
         conn._otherDeviceId = otherDeviceId;
