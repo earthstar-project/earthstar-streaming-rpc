@@ -10,7 +10,7 @@ import { sleep } from '../util.ts';
 class TransportHttpExpressScenario<BagType extends FnsBag> implements ITransportScenario<BagType> {
     name = 'TransportHttpClient + TransportHttpServerOpine';
     connAtoB: IConnection<BagType>;
-    connBtoA: IConnection<BagType>;
+    connBtoA: IConnection<BagType> | null = null;
     clientTransport: ITransport<BagType>;
     serverTransport: ITransport<BagType>;
 

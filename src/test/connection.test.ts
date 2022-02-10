@@ -36,7 +36,7 @@ async function testConnectionNotify(
             // because notify is not supposed to return anything.
             // This will show as a console.warn but that's expected.
 
-            // error in the method call (no such method
+            // error in the method call (no such method)
             try {
                 await scenario.connAtoB.notify(
                     'nosuch' as unknown as keyof typeof makeObservedMethods,
@@ -115,7 +115,7 @@ async function testClosingConnection(
             assert(!scenario.clientTransport.isClosed, 'clientTransport is not closed yet');
             assert(!scenario.serverTransport.isClosed, 'serverTransport is not closed yet');
             assert(!scenario.connAtoB.isClosed, 'connAtoB is not closed yet');
-            assert(!scenario.connBtoA.isClosed, 'connBtoA is not closed yet');
+            assert(!scenario.connBtoA?.isClosed, 'connBtoA is not closed yet');
 
             // close one side of the connection, the other side closes, but not the transport
             scenario.connAtoB.close();

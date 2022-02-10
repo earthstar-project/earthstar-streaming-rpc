@@ -163,7 +163,7 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
                     conn.status.set('OPEN');
                     log(`got ${envs.length} envelopes`);
                     for (const env of envs) {
-                        if (this.isClosed) return () => {};
+                        if (this.isClosed) return;
                         await conn.handleIncomingEnvelope(env);
                     }
                 } catch (error) {

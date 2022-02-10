@@ -204,19 +204,17 @@ If you try to do anything with a Connection or Transport that is CLOSED:
 
 `TransportHttpClient`
 
-`TransportHttpServer`
+`TransportHttpServer` (Any runtime / server with support for the Fetch API's `Request` and `Response`)
 
-`TransportHttpHandler`
+`TransportHttpServerOpine` (Deno)
+
+`TransportHttpServerExpress` (Node)
 
 This is a lazy way to get bidirectional communication over HTTP. We'll improve it later:
 
 Client --> server: messages are POSTed in batches (arrays), currently one at a time, so the array always has length 1. This should be improved by batching up messages and sending them every 50 milliseconds.
 
 Server --> client: The client does GET requests to poll for batches of messages that the server has accumulated for that particular client (by deviceId). It polls quickly until the server is empty, then it slows down and polls every couple of seconds. This should be converted to a single streaming GET.
-
-The server class takes an existing Express server app in its constructor, and adds a route handler to it. The client uses `fetch`.
-
-The handler class has a `handler` property with a function which takes a standard `Request` and returns a `Response.` This can be plugged as-is with many server frameworks, or you can compose the handler into something like an Express / Opine handler.
 
 #### Other
 

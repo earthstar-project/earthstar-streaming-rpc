@@ -16,7 +16,7 @@ export interface ITransportHttpServerOpts<BagType extends FnsBag> {
     path?: string; // url path on server, like '/'
 }
 
-/** A Transport that connects directly to other Transports via HTTP. */
+/** A Transport that is able to receive and respond to HTTP requests. */
 export class TransportHttpServer<BagType extends FnsBag> implements ITransport<BagType> {
     status: Watchable<TransportStatus> = new Watchable('OPEN' as TransportStatus);
     deviceId: string;
@@ -51,6 +51,7 @@ export class TransportHttpServer<BagType extends FnsBag> implements ITransport<B
         this.onClose(() => clearInterval(staleCheckTimer));
     }
 
+    /** Processes HTTP requests from TransportHttpClient and returns the appropriate response. */
     handler = async (req: Request): Promise<Response> => {
         const outgoingUrlPattern = new URLPattern({ pathname: `${this._path}for/:otherDeviceId` });
         const incomingUrlPattern = new URLPattern({ pathname: `${this._path}from/:otherDeviceId` });
