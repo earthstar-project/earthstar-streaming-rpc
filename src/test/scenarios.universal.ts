@@ -85,9 +85,6 @@ export class TransportBroadcastChannelScenario<BagType extends FnsBag>
     }
 
     async prepare() {
-        this.clientTransport.register();
-        this.serverTransport.register();
-        this._andAnotherOne.register();
         await sleep(10);
     }
 

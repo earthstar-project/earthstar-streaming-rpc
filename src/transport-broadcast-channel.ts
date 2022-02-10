@@ -42,7 +42,9 @@ export class TransportBroadcastChannel<BagType extends FnsBag> implements ITrans
         const onEvent = (event: MessageEvent<TransportMessage<BagType>>) => {
             if (isEnvelopeMessage(event.data)) {
                 const connection = this._addOrGetConnection(event.data.envelope.fromDeviceId);
+
                 connection.handleIncomingEnvelope(event.data.envelope);
+
                 return;
             }
 
@@ -55,6 +57,8 @@ export class TransportBroadcastChannel<BagType extends FnsBag> implements ITrans
             this._channel.close();
             this._channel.removeEventListener('message', onEvent);
         });
+
+        this.register();
     }
 
     get isClosed() {
