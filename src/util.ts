@@ -1,3 +1,5 @@
+import { RpcErrorTimeout } from './errors.ts';
+
 export function fetchWithTimeout(
     timeout: number,
     ...args: Parameters<typeof fetch>
@@ -23,6 +25,17 @@ export function fetchWithTimeout(
 
     return { request, cancel };
 }
+
+export const withTimeout = async <T>(ms: number, prom: Promise<T>): Promise<T> => {
+    let timeout = 0;
+    const rejectAfterMs = new Promise((res, rej) => {
+        timeout = setTimeout(() => rej(new RpcErrorTimeout()), ms);
+    });
+
+    const result = await Promise.race([rejectAfterMs, prom]) as Promise<T>;
+    clearTimeout(timeout);
+    return result;
+};
 
 export const ensureEndsWith = (s: string, suffix: string) => {
     if (s.endsWith(suffix)) return s;

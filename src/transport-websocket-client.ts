@@ -1,9 +1,9 @@
-import { RpcError, RpcErrorNetworkProblem, RpcErrorUseAfterClose } from './errors.ts';
+import { RpcErrorNetworkProblem, RpcErrorUseAfterClose } from './errors.ts';
 import { FnsBag } from './types-bag.ts';
 import { IConnection, ITransport, ITransportOpts, Thunk, TransportStatus } from './types.ts';
 import { Envelope } from './types-envelope.ts';
 import { Watchable, WatchableSet } from './watchable.ts';
-import { ensureEndsWith, setImmediate2, sleep, withTimeout } from './util.ts';
+import { sleep } from './util.ts';
 import { Connection } from './connection.ts';
 
 import { logTransport as log } from './log.ts';
@@ -72,10 +72,14 @@ export class TransportWebsocketClient<BagType extends FnsBag> implements ITransp
             conn.status.set('ERROR');
             //throw new RpcErrorNetworkProblem('could not connect');
             log(`could not connect.  retrying in ${RECONNECT_TIMEOUT} ms...`);
-            setTimeout(() => {
+            const timeout = setTimeout(() => {
                 log('reconnecting');
                 this.addConnection(url);
             }, RECONNECT_TIMEOUT);
+
+            conn.onClose(() => {
+                clearTimeout(timeout);
+            });
         };
 
         ws.onclose = (e: CloseEvent) => {

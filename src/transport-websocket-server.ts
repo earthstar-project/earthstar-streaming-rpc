@@ -1,9 +1,6 @@
-import { RpcError, RpcErrorNetworkProblem, RpcErrorUseAfterClose } from './errors.ts';
 import { FnsBag } from './types-bag.ts';
-import { IConnection, ITransport, ITransportOpts, Thunk, TransportStatus } from './types.ts';
-import { Envelope } from './types-envelope.ts';
+import { IConnection, ITransport, Thunk, TransportStatus } from './types.ts';
 import { Watchable, WatchableSet } from './watchable.ts';
-import { ensureEndsWith, setImmediate2, sleep, withTimeout } from './util.ts';
 import { Connection } from './connection.ts';
 
 import { logTransport as log } from './log.ts';
