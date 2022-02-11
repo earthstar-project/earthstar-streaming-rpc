@@ -115,7 +115,7 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
                     // And need to support some node-fetch variant of this error too.
                     if (
                         error.message === 'The signal has been aborted' ||
-                        error.message === 'The user aborted a request'
+                        error.message === 'The user aborted a request.'
                     ) {
                         return;
                     }
