@@ -119,16 +119,7 @@ export class TransportBroadcastChannel<BagType extends FnsBag> implements ITrans
             },
         });
 
-        const onEvent = (event: MessageEvent<TransportMessage<BagType>>) => {
-            if (isEnvelopeMessage(event.data)) {
-                conn.handleIncomingEnvelope(event.data.envelope);
-            }
-        };
-
-        this._channel.addEventListener('message', onEvent);
-
         conn.onClose(() => {
-            this._channel.removeEventListener('message', onEvent);
             this.connections.delete(conn);
         });
 
