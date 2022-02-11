@@ -6,13 +6,16 @@ export function fetchWithTimeout(
 
     const [input, init] = args;
 
-    const request = fetch(input, { ...init, signal: controller.signal });
-
     const timeoutId = setTimeout(() => {
         if (!controller.signal.aborted) {
             controller.abort();
         }
     }, timeout);
+
+    const request = fetch(input, { ...init, signal: controller.signal }).then((res) => {
+        clearTimeout(timeoutId);
+        return res;
+    });
 
     const cancel = () => {
         clearTimeout(timeoutId);
