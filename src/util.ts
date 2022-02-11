@@ -15,6 +15,9 @@ export function fetchWithTimeout(
     const request = fetch(input, { ...init, signal: controller.signal }).then((res) => {
         clearTimeout(timeoutId);
         return res;
+    }).catch((err) => {
+        clearTimeout(timeoutId);
+        return err as Response;
     });
 
     const cancel = () => {
