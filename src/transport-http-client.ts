@@ -110,6 +110,19 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
                         conn.status.set('OPEN');
                     }
                 } catch (error) {
+                    // Don't throw if we're just cancelling the request
+                    if (
+                        error instanceof DOMException &&
+                        error.message === 'The signal has been aborted'
+                    ) {
+                        return;
+                    }
+
+                    // And handle the node-fetch variant too.
+                    if (error.message === 'The user aborted a request') {
+                        return;
+                    }
+
                     log('send... error.');
                     conn.status.set('ERROR');
                     //console.warn('> sendEnvelope error:', error);

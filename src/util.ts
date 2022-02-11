@@ -49,8 +49,20 @@ export interface Deferred<T> {
 export const makeDeferred = <T>(): Deferred<T> => {
     const def: any = {};
     def.promise = new Promise<T>((resolve, reject) => {
-        def.resolve = resolve;
-        def.reject = reject;
+        def.resolve = (arg: T) => {
+            try {
+                resolve(arg);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        def.reject = (arg: any) => {
+            try {
+                reject(arg);
+            } catch (err) {
+                console.error(err);
+            }
+        };
     });
     return def as Deferred<T>;
 };
