@@ -111,15 +111,12 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
                     }
                 } catch (error) {
                     // Don't throw if we're just cancelling the request
+                    // Can't use DOMException here because Node doesn't have it.
+                    // And need to support some node-fetch variant of this error too.
                     if (
-                        error instanceof DOMException &&
-                        error.message === 'The signal has been aborted'
+                        error.message === 'The signal has been aborted' ||
+                        error.message === 'The user aborted a request'
                     ) {
-                        return;
-                    }
-
-                    // And handle the node-fetch variant too.
-                    if (error.message === 'The user aborted a request') {
                         return;
                     }
 
