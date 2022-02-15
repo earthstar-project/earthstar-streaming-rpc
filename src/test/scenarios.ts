@@ -154,6 +154,10 @@ class TransportWebsocketScenario<BagType extends FnsBag> implements ITransportSc
         this.connAtoB = this.clientTransport.addConnection(SERVER_URL);
     }
 
+    prepare() {
+        return Promise.resolve();
+    }
+
     teardown() {
         this.serverTransport.close();
         this.clientTransport.close();
