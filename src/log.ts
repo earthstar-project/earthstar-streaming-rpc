@@ -1,6 +1,10 @@
 import { crayon } from '../deps.ts';
 
-const showLogs = Deno.env.get('VERBOSE') === 'true';
+let showLogs = false;
+
+export function toggleLogs() {
+    showLogs = !showLogs;
+}
 
 export const logMain = (...args: any[]) => {
     if (showLogs) console.log(crayon.bgWhite.black(' main '), ...args);
@@ -31,7 +35,7 @@ export const logWatchable = (...args: any[]) => {
 };
 
 export const logPullState = (...args: any[]) => {
-    if (Deno.env.get('PULLS') === 'true') {
+    if (showLogs) {
         console.log('    ' + crayon.bgLightMagenta.black(' pull state '), ...args);
     }
 };
