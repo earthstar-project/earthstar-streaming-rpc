@@ -7,5 +7,6 @@ export interface ITransportScenario<BagType extends FnsBag> {
     connBtoA: IConnection<BagType> | null;
     clientTransport: ITransport<BagType>;
     serverTransport: ITransport<BagType>;
+    prepare: () => Promise<void>;
     teardown: () => Promise<void>;
 }

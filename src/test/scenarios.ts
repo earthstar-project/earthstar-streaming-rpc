@@ -6,7 +6,10 @@ import { TransportHttpServer } from '../transport-http-server.ts';
 import { TransportHttpServerOpine } from '../transport-http-server-opine.ts';
 import { TransportWebsocketServer } from '../transport-websocket-server.ts';
 import { TransportWebsocketClient } from '../transport-websocket-client.ts';
-import { TransportLocalScenario } from './scenarios.universal.ts';
+import {
+    TransportBroadcastChannelScenario,
+    TransportLocalScenario,
+} from './scenarios.universal.ts';
 
 import { sleep } from '../util.ts';
 import { serve } from 'https://deno.land/std@0.123.0/http/mod.ts';
@@ -48,6 +51,10 @@ class TransportHttpScenario<BagType extends FnsBag> implements ITransportScenari
         this.connBtoA = connBtoA;
         this.clientTransport = clientTransport;
         this.serverTransport = serverTransport;
+    }
+
+    prepare() {
+        return Promise.resolve();
     }
 
     teardown() {
@@ -98,6 +105,10 @@ class TransportHttpOpineScenario<BagType extends FnsBag> implements ITransportSc
         this.serverTransport = serverTransport;
     }
 
+    prepare() {
+        return Promise.resolve();
+    }
+
     teardown() {
         this.serverTransport.close();
         this.clientTransport.close();
@@ -143,6 +154,10 @@ class TransportWebsocketScenario<BagType extends FnsBag> implements ITransportSc
         this.connAtoB = this.clientTransport.addConnection(SERVER_URL);
     }
 
+    prepare() {
+        return Promise.resolve();
+    }
+
     teardown() {
         this.serverTransport.close();
         this.clientTransport.close();
@@ -153,6 +168,7 @@ class TransportWebsocketScenario<BagType extends FnsBag> implements ITransportSc
 
 export const scenarios = [
     TransportLocalScenario,
+    TransportBroadcastChannelScenario,
     TransportHttpScenario,
     TransportHttpOpineScenario,
     TransportWebsocketScenario,
