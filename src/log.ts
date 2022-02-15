@@ -29,3 +29,9 @@ export const logWatchable = (...args: any[]) => {
         console.log(crayon.bgRed.black(' watchable '), ...args);
     }
 };
+
+export const logPullState = (...args: any[]) => {
+    if (Deno.env.get('PULLS') === 'true') {
+        console.log('    ' + crayon.bgLightMagenta.black(' pull state '), ...args);
+    }
+};

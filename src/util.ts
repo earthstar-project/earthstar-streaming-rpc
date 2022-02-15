@@ -17,9 +17,6 @@ export function fetchWithTimeout(
     const request = fetch(input, { ...init, signal: controller.signal }).then((res) => {
         clearTimeout(timeoutId);
         return res;
-    }).catch((err) => {
-        clearTimeout(timeoutId);
-        return err as Response;
     });
 
     const cancel = () => {
@@ -29,7 +26,11 @@ export function fetchWithTimeout(
         }
     };
 
-    return { request, cancel };
+    const clearFetchTimeout = () => {
+        clearTimeout(timeoutId);
+    };
+
+    return { request, cancel, clearFetchTimeout };
 }
 
 export const withTimeout = async <T>(ms: number, prom: Promise<T>): Promise<T> => {
