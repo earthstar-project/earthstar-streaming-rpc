@@ -117,9 +117,11 @@ class InFlightPullState<BagType extends FnsBag> {
         }).catch((error) => {
             // This will happen if this state was closed
             // or timed out.
+            // Can't use DOMException here because Node doesn't have it.
+            // And need to support some node-fetch variant of this error too.
             if (
-                error instanceof DOMException &&
-                error.message === 'The signal has been aborted'
+                error.message === 'The signal has been aborted' ||
+                error.message === 'The user aborted a request.'
             ) {
                 logPullState('(IN-FLIGHT) Request was cancelled.');
                 return;
