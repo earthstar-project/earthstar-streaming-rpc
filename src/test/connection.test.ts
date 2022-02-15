@@ -141,6 +141,8 @@ Deno.test('connection behaviour', async (t) => {
     for await (const Scenario of scenarios) {
         const scenarioInst = new Scenario(methods);
 
+        await scenarioInst.prepare();
+
         await testConnectionNotify(t, scenarioInst, eventLog);
         await testConnectionRequestResponse(t, scenarioInst, eventLog);
         await testClosingConnection(t, scenarioInst);

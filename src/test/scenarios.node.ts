@@ -45,6 +45,10 @@ class TransportHttpExpressScenario<BagType extends FnsBag> implements ITransport
         this.serverTransport = serverTransport;
     }
 
+    prepare() {
+        return Promise.resolve();
+    }
+
     teardown() {
         this.serverTransport.close();
         this.clientTransport.close();
