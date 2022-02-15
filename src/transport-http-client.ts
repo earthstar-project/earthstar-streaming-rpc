@@ -94,8 +94,6 @@ class InFlightPullState<BagType extends FnsBag> {
             logPullState('(IN-FLIGHT) Fetched successfully!');
 
             if (!response.ok) {
-                console.log(response);
-
                 throw new RpcErrorNetworkProblem('pull thread HTTP response was not ok');
             }
 
@@ -191,7 +189,6 @@ export class TransportHttpClient<BagType extends FnsBag> implements ITransport<B
 
         log('...closing connections...');
         for (const conn of this.connections) {
-            console.log('Closing connection', conn);
             conn.close();
         }
 
