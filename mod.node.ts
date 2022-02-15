@@ -3,6 +3,7 @@ export * from './src/errors.ts';
 export * from './src/transport-http-client.ts';
 export * from './src/transport-http-server-express.ts';
 export * from './src/transport-local.ts';
+export * from './src/transport-websocket-client.ts';
 export * from './src/types-envelope.ts';
 export * from './src/types.ts';
 export * from './src/types-bag.ts';

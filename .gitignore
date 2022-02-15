@@ -6,4 +6,5 @@ cov.lcov
 cov_profile/
 cov_html/
 npm/*
-*.bundle.js
+*bundle.js
+bundle.js

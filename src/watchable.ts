@@ -1,3 +1,6 @@
+import { withTimeout } from './util.ts';
+import { logWatchable as log } from './log.ts';
+
 type Thunk = () => void;
 type CbOldNew<T> = (oldVal: T, newVal: T) => void;
 type CbValue<T> = (value: T) => void;
@@ -9,6 +12,7 @@ export class Watchable<T> {
     // targeted callbacks (onChangeTo)
     _cbsByTarget: Map<any, Set<CbOldNew<T>>> = new Map();
     constructor(val: T) {
+        log('constructor:', val);
         this.value = val;
     }
     get(): T {
@@ -16,9 +20,12 @@ export class Watchable<T> {
     }
     set(newVal: T) {
         const oldVal = this.value;
+        log('set:', oldVal, ' --> ', newVal);
         this.value = newVal;
-        if (oldVal !== this.value) {
-            this._cbs.forEach((cb) => cb(oldVal, newVal));
+        if (newVal !== oldVal) {
+            for (const cb of this._cbs) {
+                cb(oldVal, this.value);
+            }
             const cbsByTarget = this._cbsByTarget.get(newVal);
             if (cbsByTarget) {
                 cbsByTarget.forEach((cb) => cb(oldVal, newVal));
@@ -37,6 +44,25 @@ export class Watchable<T> {
         return () => {
             this._cbsByTarget.get(target)?.delete(cb);
         };
+    }
+    waitUntil(target: any, timeout?: number): Promise<void> {
+        // this uses strict equality
+        if (this.value === target) {
+            log('waitUntil: is already equal to', target);
+            return Promise.resolve();
+        }
+        log('waitUntil: setting up Promise', target);
+        let prom = new Promise<void>((resolve, reject) => {
+            let unsub = this.onChangeTo(target, (oldVal, newVal) => {
+                unsub();
+                resolve();
+            });
+        });
+        if (timeout !== undefined) {
+            log('waitUntil: adding timeout', target);
+            prom = withTimeout(timeout, prom);
+        }
+        return prom;
     }
 }
 
