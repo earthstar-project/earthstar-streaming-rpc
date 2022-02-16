@@ -98,9 +98,12 @@ export class TransportWebsocketClient<BagType extends FnsBag> implements ITransp
                 log(`connection "${conn.description}" is sending an envelope:`, env);
                 log('waiting for OPEN...');
                 await conn.status.waitUntil('OPEN', CONNECT_TIMEOUT);
-                log('send...');
-                ws.send(JSON.stringify(env));
-                log('...done');
+                // We need this — the Websocket may still have been closed after the 'Connection' was opened.
+                if (ws.readyState === ws.OPEN) {
+                    log('send...');
+                    ws.send(JSON.stringify(env));
+                    log('...done');
+                }
             },
         });
 
