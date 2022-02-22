@@ -8,7 +8,9 @@ await build({
     ],
     outDir: './npm',
     shims: {
-        deno: true,
+        deno: {
+            test: 'dev',
+        },
         weakRef: true,
         timers: true,
         custom: [
@@ -51,22 +53,15 @@ await build({
                     exportName: 'AbortController',
                 }],
             },
-            {
-                package: {
-                    name: '@types/express',
-                    version: '4.17.2',
-                },
-
-                globalNames: [],
-            },
-            {
-                package: {
-                    name: '@types/node-fetch',
-                    version: '2.5.12',
-                },
-                globalNames: [],
-            },
         ],
+        customDev: [{
+            package: {
+                name: '@types/express',
+                version: '4.17.2',
+            },
+
+            globalNames: [],
+        }],
     },
     mappings: {
         'https://esm.sh/express@4.17.2?dts': {
@@ -93,6 +88,10 @@ await build({
         },
         bugs: {
             url: 'https://github.com/earthstar-project/earthstar-streaming-rpc/issues',
+        },
+        devDependencies: {
+            '@types/node-fetch': '2.5.12',
+            '@types/express': '4.17.2',
         },
     },
 });
