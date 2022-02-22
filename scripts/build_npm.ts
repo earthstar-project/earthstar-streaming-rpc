@@ -7,7 +7,6 @@ await build({
         './mod.node.ts',
     ],
     outDir: './npm',
-    //typeCheck: false,
     shims: {
         deno: true,
         weakRef: true,
@@ -52,14 +51,19 @@ await build({
                     exportName: 'AbortController',
                 }],
             },
-        ],
-        customDev: [
             {
                 package: {
                     name: '@types/express',
                     version: '4.17.2',
                 },
 
+                globalNames: [],
+            },
+            {
+                package: {
+                    name: '@types/node-fetch',
+                    version: '2.5.12',
+                },
                 globalNames: [],
             },
         ],
