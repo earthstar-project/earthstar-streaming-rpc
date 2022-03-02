@@ -100,3 +100,24 @@ await build({
 // post build steps
 Deno.copyFileSync('LICENSE', 'npm/LICENSE');
 Deno.copyFileSync('README.md', 'npm/README.md');
+
+// A truly filthy hack to compensate for Typescript's lack of support for the exports field
+Deno.writeTextFileSync(
+    'npm/browser.js',
+    `export * from "./esm/src/entries/browser.js";`,
+);
+
+Deno.writeTextFileSync(
+    'npm/browser.d.ts',
+    `export * from './types/src/entries/browser';`,
+);
+
+Deno.writeTextFileSync(
+    'npm/node.js',
+    `export * from "./esm/src/entries/node.js";`,
+);
+
+Deno.writeTextFileSync(
+    'npm/node.d.ts',
+    `export * from './types/src/entries/node';`,
+);
