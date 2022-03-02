@@ -1,10 +1,12 @@
-import { build, emptyDir } from 'https://deno.land/x/dnt@0.17.0/mod.ts';
+import { build, emptyDir } from 'https://deno.land/x/dnt@0.21.0/mod.ts';
 
 await emptyDir('npm');
 
 await build({
     entryPoints: [
-        './mod.node.ts',
+        { name: '.', path: './src/entries/universal.ts' },
+        { name: './node', path: './src/entries/node.ts' },
+        { name: './browser', path: './src/entries/browser.ts' },
     ],
     outDir: './npm',
     shims: {
@@ -68,8 +70,6 @@ await build({
             name: 'express',
             version: '4.17.2',
         },
-    },
-    redirects: {
         './src/test/scenarios.ts': './src/test/scenarios.node.ts',
     },
     compilerOptions: {
@@ -93,6 +93,7 @@ await build({
             '@types/node-fetch': '2.5.12',
             '@types/express': '4.17.2',
         },
+        sideEffects: false,
     },
 });
 

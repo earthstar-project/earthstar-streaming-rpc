@@ -2,7 +2,7 @@
 
 Similar to JSON-RPC, but also supports streaming (soon). Written to be used in
 Earthstar ([github](https://github.com/earthstar-project),
-[docs](https://earthstar-website.fly.dev/)).
+[website](https://earthstar-project.org/)).
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -34,24 +34,38 @@ Earthstar ([github](https://github.com/earthstar-project),
 
 ### Importing
 
-To use in Deno you can import directly from Github using a specific git tag as a version number:
+To use in Deno:
 
 ```ts
 import {
     TransportHttpClient,
     TransportHttpServer,
-} from 'https://raw.githubusercontent.com/earthstar-project/earthstar-streaming-rpc/v2.0.0/mod.ts';
+} from 'https://deno.land/x/earthstar_streaming_rpc';
 ```
 
 To use with Node or apps built with NPM dependencies:
 
 `npm install earthstar-streaming-rpc`
 
-And then import in your code:
+And then import in your code, with paths:
 
 ```ts
-import { TransportHttpClient, TransportHttpServer } from 'earthstar-streaming-rpc';
+import { TransportHttpClient } from 'earthstar-streaming-rpc';
+import { TransportWebSocketClient } from 'earthstar-streaming-rpc/browser';
+import { TransportHttpServerExpress } from 'earthstar-streaming-rpc/node';
 ```
+
+For Typescript to detect the subpaths, you will need to use version 4.5 of Typescript or upwards, and add the following flags to your tsconfig.json:
+
+```
+{
+  // ... other stuff ...
+  module: "nodenext", 
+  moduleResolution: "nodenext"
+}
+```
+
+We know, this is annoying. Typescript will hopefully support this out of the box soon.
 
 ### Concepts
 
@@ -218,13 +232,13 @@ Server --> client: The client does GET requests to poll for batches of messages 
 
 #### Other
 
-`TransportLocal` - A connection within one device, mostly useful for testing.
+`TransportLocal` - (Universal) A connection within one device, mostly useful for testing.
 
-#### Future transport types, not written yet
+`TransportBroadcastChannel` (Browser, Deno)
 
-- BroadcastChannel, for communicating between browser tabs
-- Websockets
-- Hyperswarm
+`TransportWebsocketClient` (Browser, Deno)
+
+`TransportWebsocketServer` (Deno)
 
 ### Writing a new kind of Transport class
 
