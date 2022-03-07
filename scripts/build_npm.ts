@@ -15,25 +15,14 @@ await build({
         },
         weakRef: true,
         timers: true,
+        undici: true,
         custom: [
             {
                 package: {
-                    name: 'node-fetch',
-                    version: '2.6.6',
+                    name: 'cross-fetch',
+                    version: '3.1.5',
                 },
-                typesPackage: {
-                    name: '@types/node-fetch',
-                    version: '2.5.12',
-                },
-                globalNames: [
-                    { name: 'Headers', exportName: 'Headers' },
-                    {
-                        name: 'fetch',
-                        exportName: 'default',
-                    },
-                    { name: 'Request', exportName: 'Request' },
-                    { name: 'Response', exportName: 'Response' },
-                ],
+                globalNames: [],
             },
             {
                 package: {
@@ -90,7 +79,6 @@ await build({
             url: 'https://github.com/earthstar-project/earthstar-streaming-rpc/issues',
         },
         devDependencies: {
-            '@types/node-fetch': '2.5.12',
             '@types/express': '4.17.2',
         },
         sideEffects: false,
