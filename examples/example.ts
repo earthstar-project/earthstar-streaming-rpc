@@ -1,8 +1,6 @@
 import { makeId, sleep, TransportHttpClient, TransportHttpServer } from '../mod.ts';
 import { logMain as log } from '../src/log.ts';
 
-import { opine, opineJson } from '../deps.ts';
-
 const main = async () => {
     log('----------------------------------------');
 
@@ -18,18 +16,11 @@ const main = async () => {
 
     log('----------------------------------------');
 
-    const app = opine();
-    app.use(opineJson());
-
     const port = 8008;
     const path = '/earthstar-api/v2/';
-    const server = app.listen(port, () => {
-        log(`server started at http://localhost:${port}${path}`);
-    });
     const transServer = new TransportHttpServer({
         deviceId: 'device:server',
         methods,
-        app,
         path: path,
     });
 
@@ -75,9 +66,6 @@ const main = async () => {
 
     log('closing server');
     transServer.close();
-
-    log('closing express server');
-    server.close();
 
     log('----------------------------------------');
 

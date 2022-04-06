@@ -1,6 +1,6 @@
 import { ITransportHttpServerOpts, TransportHttpServer } from './transport-http-server.ts';
 import { FnsBag } from './types-bag.ts';
-import { json, Opine, OpineRequest, OpineResponse } from 'https://deno.land/x/opine@2.1.1/mod.ts';
+import { json, Opine, OpineRequest, OpineResponse } from 'https://deno.land/x/opine@2.1.5/mod.ts';
 
 export interface ITransportHttpServerOpineOpts<BagType extends FnsBag>
     extends ITransportHttpServerOpts<BagType> {

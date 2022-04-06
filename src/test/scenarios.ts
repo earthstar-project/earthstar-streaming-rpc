@@ -13,7 +13,7 @@ import {
 
 import { sleep } from '../util.ts';
 import { serve } from 'https://deno.land/std@0.123.0/http/mod.ts';
-import { Opine, opine } from 'https://deno.land/x/opine@2.1.1/mod.ts';
+import { Opine, opine } from 'https://deno.land/x/opine@2.1.5/mod.ts';
 
 class TransportHttpScenario<BagType extends FnsBag> implements ITransportScenario<BagType> {
     name = 'TransportHttpClient + TransportHttpServer';
