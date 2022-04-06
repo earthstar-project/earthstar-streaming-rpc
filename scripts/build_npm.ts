@@ -15,14 +15,25 @@ await build({
         },
         weakRef: true,
         timers: true,
-        undici: true,
         custom: [
             {
                 package: {
-                    name: 'cross-fetch',
-                    version: '3.1.5',
+                    name: 'node-fetch',
+                    version: '2.6.6',
                 },
-                globalNames: [],
+                typesPackage: {
+                    name: '@types/node-fetch',
+                    version: '2.5.12',
+                },
+                globalNames: [
+                    { name: 'Headers', exportName: 'Headers' },
+                    {
+                        name: 'fetch',
+                        exportName: 'default',
+                    },
+                    { name: 'Request', exportName: 'Request' },
+                    { name: 'Response', exportName: 'Response' },
+                ],
             },
             {
                 package: {
@@ -80,6 +91,7 @@ await build({
         },
         devDependencies: {
             '@types/express': '4.17.2',
+            '@types/node-fetch': '2.5.12',
         },
         sideEffects: false,
     },
