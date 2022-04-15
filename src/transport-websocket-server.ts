@@ -6,7 +6,6 @@ import { Connection } from './connection.ts';
 import { logTransport as log } from './log.ts';
 
 export interface ITransportWebsocketServerOpts<BagType extends FnsBag> {
-    url: string;
     deviceId: string; // id of this device
     methods: BagType;
     //streams: { [method: string]: Fn },
@@ -17,16 +16,14 @@ export class TransportWebsocketServer<BagType extends FnsBag> implements ITransp
     deviceId: string;
     methods: BagType;
     connections: WatchableSet<IConnection<BagType>> = new WatchableSet();
-    _url: string;
-    reqHandler: any;
+    handler: (req: Request) => Response;
 
     constructor(opts: ITransportWebsocketServerOpts<BagType>) {
         log('constructor for device', opts.deviceId);
         this.deviceId = opts.deviceId;
         this.methods = opts.methods;
-        this._url = opts.url;
 
-        this.reqHandler = (req: Request) => {
+        this.handler = (req: Request) => {
             log(`${req.method} ${req.url}`);
             if (req.headers.get('upgrade') !== 'websocket') {
                 return new Response(null, { status: 501 });
