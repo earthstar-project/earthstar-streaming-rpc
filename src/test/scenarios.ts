@@ -83,6 +83,7 @@ class TransportHttpOpineScenario<BagType extends FnsBag> implements ITransportSc
             methods,
             deviceId: 'testserver',
             app,
+            path: '/test',
         });
 
         // Do a little dance here for Typescript.
@@ -99,7 +100,7 @@ class TransportHttpOpineScenario<BagType extends FnsBag> implements ITransportSc
             1234,
         );
 
-        this.connAtoB = clientTransport.addConnection('http://localhost:1234');
+        this.connAtoB = clientTransport.addConnection('http://localhost:1234/test');
 
         this.clientTransport = clientTransport;
         this.serverTransport = serverTransport;
@@ -134,14 +135,13 @@ class TransportWebsocketScenario<BagType extends FnsBag> implements ITransportSc
         this.serverTransport = new TransportWebsocketServer({
             deviceId: 'test-ws-server',
             methods,
-            url: SERVER_URL,
         });
 
         this._controller = new AbortController();
 
         this.serverTransport.connections.onAdd((conn) => this.connBtoA = conn);
 
-        this._serve = serve(this.serverTransport.reqHandler, {
+        this._serve = serve(this.serverTransport.handler, {
             hostname: '0.0.0.0',
             port: 8008,
             signal: this._controller.signal,

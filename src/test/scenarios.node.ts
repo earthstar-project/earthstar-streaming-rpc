@@ -25,6 +25,7 @@ class TransportHttpExpressScenario<BagType extends FnsBag> implements ITransport
             methods,
             deviceId: 'testserver',
             app,
+            path: '/test',
         });
 
         // Do a little dance here for Typescript.
@@ -39,7 +40,7 @@ class TransportHttpExpressScenario<BagType extends FnsBag> implements ITransport
             1234,
         );
 
-        this.connAtoB = clientTransport.addConnection('http://localhost:1234');
+        this.connAtoB = clientTransport.addConnection('http://localhost:1234/test');
 
         this.clientTransport = clientTransport;
         this.serverTransport = serverTransport;

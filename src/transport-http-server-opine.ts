@@ -12,7 +12,7 @@ export class TransportHttpServerOpine<BagType extends FnsBag> extends TransportH
         super(opts);
 
         opts.app.use(json());
-        opts.app.all('*', (req, res) => {
+        opts.app.all(`${opts.path || ''}*`, (req, res) => {
             this._opineHandler(req, res);
         });
     }

@@ -18,7 +18,7 @@ export class TransportHttpServerExpress<BagType extends FnsBag>
         super(opts);
 
         opts.app.use(json());
-        opts.app.all('*', (req, res) => {
+        opts.app.all(`${opts.path || ''}*`, (req, res) => {
             this._expressHandler(req, res);
         });
     }
