@@ -52,7 +52,7 @@ export class TransportHttpServer<BagType extends FnsBag> implements ITransport<B
     }
 
     /** Processes HTTP requests from TransportHttpClient and returns the appropriate response. */
-    handler = async (req: Request): Promise<Response> => {
+    handler = async (req: InstanceType<typeof Request>): Promise<InstanceType<typeof Response>> => {
         const outgoingUrlPattern = new URLPattern({ pathname: `${this._path}for/:otherDeviceId` });
         const incomingUrlPattern = new URLPattern({ pathname: `${this._path}from/:otherDeviceId` });
 

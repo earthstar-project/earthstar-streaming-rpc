@@ -1,4 +1,4 @@
-import { build, emptyDir } from 'https://deno.land/x/dnt@0.21.0/mod.ts';
+import { build, emptyDir } from 'https://deno.land/x/dnt@0.23.0/mod.ts';
 
 await emptyDir('npm');
 
@@ -17,20 +17,13 @@ await build({
         timers: true,
         custom: [
             {
-                package: {
-                    name: 'node-fetch',
-                    version: '2.6.6',
-                },
-                typesPackage: {
-                    name: '@types/node-fetch',
-                    version: '2.5.12',
-                },
+                module: './src/shim/fetch.ts',
                 globalNames: [
-                    { name: 'Headers', exportName: 'Headers' },
                     {
                         name: 'fetch',
                         exportName: 'default',
                     },
+                    { name: 'Headers', exportName: 'Headers' },
                     { name: 'Request', exportName: 'Request' },
                     { name: 'Response', exportName: 'Response' },
                 ],
@@ -69,6 +62,10 @@ await build({
         'https://esm.sh/express@4.17.2?dts': {
             name: 'express',
             version: '4.17.2',
+        },
+        'https://esm.sh/node-fetch': {
+            name: 'node-fetch',
+            version: '2.6.6',
         },
         './src/test/scenarios.ts': './src/test/scenarios.node.ts',
     },

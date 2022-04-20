@@ -14,10 +14,15 @@ export function fetchWithTimeout(
         }
     }, timeout);
 
-    const request = fetch(input, { ...init, signal: controller.signal }).then((res) => {
-        clearTimeout(timeoutId);
-        return res;
-    });
+    const request = fetch(input as string, {
+        ...init as unknown as any,
+        signal: controller.signal,
+    }).then(
+        (res) => {
+            clearTimeout(timeoutId);
+            return res;
+        },
+    );
 
     const cancel = () => {
         clearTimeout(timeoutId);

@@ -26,7 +26,7 @@ export class TransportWebsocketServer<BagType extends FnsBag> implements ITransp
         this.handler = (req: Request) => {
             log(`${req.method} ${req.url}`);
             if (req.headers.get('upgrade') !== 'websocket') {
-                return new Response(null, { status: 501 });
+                return new Response(undefined, { status: 501 });
             }
             log('upgrading websocket...');
             const { socket: ws, response } = Deno.upgradeWebSocket(req);

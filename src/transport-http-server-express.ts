@@ -44,7 +44,7 @@ export class TransportHttpServerExpress<BagType extends FnsBag>
             body,
         };
 
-        const request = new Request(url.href, init);
+        const request = new Request(url.href, init as unknown as any);
 
         const response = await this.handler(request);
 
@@ -70,7 +70,7 @@ export class TransportHttpServerExpress<BagType extends FnsBag>
 
 function createFetchReqHeaders(
     requestHeaders: ExpressRequest['headers'],
-): Headers {
+): InstanceType<typeof Headers> {
     const headers = new Headers();
 
     for (const [key, values] of Object.entries(requestHeaders)) {
